@@ -1,0 +1,159 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R 6 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 2422 >>
+stream
+BT
+/F1 10 Tf
+54 790 Td
+14 TL
+(Fictional Proposal: Najm Urban Mobility Smart Parking Response  |  Page 1 of 2) Tj
+T*
+T*
+(Fictional Proposal: Najm Urban Mobility Smart Parking Response) Tj
+T*
+() Tj
+T*
+(Respondent: Najm Urban Mobility Systems) Tj
+T*
+(Tender reference: RMMO-SP-2026-014) Tj
+T*
+() Tj
+T*
+(Executive Summary) Tj
+T*
+() Tj
+T*
+(Najm Urban Mobility proposes a hosted smart parking operations platform with enforcement) Tj
+T*
+(workflows, resident permit services, payment reconciliation, and live occupancy) Tj
+T*
+(analytics for the five pilot districts.) Tj
+T*
+() Tj
+T*
+(Commercial Submission) Tj
+T*
+() Tj
+T*
+(Bid security: 2% of contract value, valid for 90 days from submission. Najm can extend) Tj
+T*
+(the validity period if requested during clarification.) Tj
+T*
+() Tj
+T*
+(Product and Language Coverage) Tj
+T*
+() Tj
+T*
+(The operator portal and resident notifications are available in Arabic and English. The) Tj
+T*
+(enforcement officer mobile interface supports Arabic labels, English labels, and right-) Tj
+T*
+(to-left layout.) Tj
+T*
+() Tj
+T*
+(Availability and Support) Tj
+T*
+() Tj
+T*
+(The hosted service is designed for 99.5% monthly availability. Critical incident) Tj
+T*
+(response is staffed 24/7 with a target human acknowledgement within 30 minutes. Standard) Tj
+T*
+(support tickets receive response within 4 business hours Sunday through Thursday.) Tj
+T*
+() Tj
+T*
+(Security and Data Residency) Tj
+T*
+() Tj
+T*
+(Najm maintains an ISO 27001-aligned information security management system and completed) Tj
+T*
+(an independent penetration test in March 2026. Production resident data will be hosted) Tj
+T*
+(in a Riyadh cloud region under a KSA data residency commitment.) Tj
+T*
+() Tj
+T*
+(Delivery Plan) Tj
+T*
+() Tj
+T*
+(District configuration begins after contract award. Field integration and officer) Tj
+T*
+(training run in parallel. Go-live is planned for 15 October 2026 after staged district) Tj
+T*
+(acceptance.) Tj
+T*
+() Tj
+T*
+(Integrations) Tj
+T*
+() Tj
+T*
+(The platform integrates with municipal payment gateways through REST callbacks and) Tj
+T*
+(signed reconciliation exports. Najm exposes REST APIs for occupancy, permits, violation) Tj
+T*
+(status, and payment events.) Tj
+T*
+() Tj
+T*
+(Training) Tj
+T*
+() Tj
+T*
+(Najm includes role-based training for 40 municipal users across operations, finance) Tj
+T*
+(reconciliation, enforcement supervisors, and system administrators. Additional training) Tj
+T*
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 161 >>
+stream
+BT
+/F1 10 Tf
+54 790 Td
+14 TL
+(Fictional Proposal: Najm Urban Mobility Smart Parking Response  |  Page 2 of 2) Tj
+T*
+T*
+(seats can be priced separately.) Tj
+T*
+ET
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000191 00000 n 
+0000000317 00000 n 
+0000002791 00000 n 
+0000002917 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+3129
+%%EOF

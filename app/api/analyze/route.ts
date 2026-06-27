@@ -1,0 +1,95 @@
+import { NextResponse } from "next/server";
+
+import { analyzeDocuments } from "@/lib/gemini";
+import { checkCooldown, getClientKey } from "@/lib/rate-limit";
+import { validateUploadManifest } from "@/lib/security";
+
+export const runtime = "nodejs";
+export const maxDuration = 45;
+
+function isFile(value: FormDataEntryValue): value is File {
+  return typeof value === "object" && "arrayBuffer" in value && "name" in value;
+}
+
+export async function POST(request: Request) {
+  const cooldown = checkCooldown(getClientKey(request));
+
+  if (!cooldown.ok) {
+    return NextResponse.json(
+      {
+        error: `Please wait ${cooldown.retryAfterSeconds}s before running another analysis.`,
+      },
+      { status: 429 },
+    );
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  const model = process.env.GEMINI_MODEL || "gemini-3.5-flash";
+
+  if (!apiKey) {
+    return NextResponse.json(
+      {
+        error: "Gemini API key is not configured for this environment.",
+      },
+      { status: 503 },
+    );
+  }
+
+  let formData: FormData;
+
+  try {
+    formData = await request.formData();
+  } catch {
+    return NextResponse.json({ error: "Malformed upload payload." }, { status: 400 });
+  }
+
+  const files = formData.getAll("files").filter(isFile);
+  const manifest = validateUploadManifest(
+    files.map((file) => ({
+      name: file.name,
+      type: file.type,
+      size: file.size,
+    })),
+  );
+
+  if (!manifest.ok) {
+    return NextResponse.json({ error: manifest.errors.join(" ") }, { status: 400 });
+  }
+
+  try {
+    const preparedFiles = await Promise.all(
+      manifest.files.map(async (meta, index) => ({
+        meta,
+        buffer: await files[index].arrayBuffer(),
+      })),
+    );
+
+    const result = await analyzeDocuments({
+      apiKey,
+      model,
+      files: preparedFiles,
+    });
+
+    return NextResponse.json({
+      result,
+      meta: {
+        model,
+        files: manifest.files.map((file) => ({
+          name: file.safeName,
+          size: file.size,
+          type: file.extension,
+        })),
+      },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown Gemini error";
+    console.error("TenderLens analysis failed:", message);
+
+    return NextResponse.json(
+      {
+        error: "TenderLens AI could not complete the analysis. Check the model key and try again.",
+      },
+      { status: 502 },
+    );
+  }
+}
