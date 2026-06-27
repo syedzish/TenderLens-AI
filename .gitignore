@@ -1,0 +1,39 @@
+# Secrets and local-only configuration
+confidential/
+.env
+.env.local
+.env.*.local
+
+# Local agent/tooling state
+.agents/
+.tools/
+.codex/
+
+# Pre-project research artifacts that are not part of the public app
+assets/research/
+docs/research/
+
+# Dependencies
+node_modules/
+
+# Next.js / Vercel build output
+.next/
+out/
+dist/
+build/
+.vercel/
+
+# Logs and caches
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.cache/
+.turbo/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
