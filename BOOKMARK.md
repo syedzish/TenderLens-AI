@@ -16,7 +16,7 @@
 ## Notes
 
 - Keep `confidential/`, `.env.local`, `.agents/`, `.tools/`, and build artifacts out of Git.
-- Use `GEMINI_MODEL=gemini-3.5-flash`.
+- Use `GEMINI_MODEL=gemini-2.5-flash-lite`.
 - Uploaded documents are transient and must not be persisted or logged.
 
 ## Verification Log

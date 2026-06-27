@@ -31,7 +31,7 @@ PDF copies are also available in `public/demo-docs/`.
 3. Click **Create API key**.
 4. Copy the key into local/Vercel environment variables only:
    - `GEMINI_API_KEY`
-   - `GEMINI_MODEL=gemini-3.5-flash`
+   - `GEMINI_MODEL=gemini-2.5-flash-lite`
 
 The app uses the free Gemini Developer API flow and keeps the key server-side.
 
@@ -40,7 +40,7 @@ The app uses the free Gemini Developer API flow and keeps the key server-side.
 Import this public GitHub repo into Vercel and set:
 
 - `GEMINI_API_KEY`
-- `GEMINI_MODEL=gemini-3.5-flash`
+- `GEMINI_MODEL=gemini-2.5-flash-lite`
 
 Every push to `main` redeploys the app.
 
