@@ -85,3 +85,6 @@
   - `npm test` passed: 7 files, 18 tests.
   - `npm run build` passed.
   - Production browser smoke passed on desktop and mobile after security changes.
+  - Pushed commit `3a51e6c`; Vercel reported deployment success.
+  - Deployed home and guide URLs returned HTTP 200.
+  - Final deployed `/api/analyze` retry returned HTTP 200 and calibrated the late go-live row as `Partial / High`.
