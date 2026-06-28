@@ -51,6 +51,15 @@
   - [x] Force RFP-only uploads to a no-response-evidence result.
   - [x] Treat malformed Gemini output as transient error instead of rendering fallback 0.
   - [ ] Verify tests, build, security scan, push, and Vercel.
+- [ ] Phase 3.7: Stabilize repeated uploaded-file analysis and lock all run buttons while analyzing.
+  - [x] User supplied the exact RFP/response files used for repeated testing:
+    - `tenderlens-test-rfp-riyadh-digital-permits.pdf`
+    - `tenderlens-test-bidder-response-atlas-systems.docx`
+  - [x] Add red tests for deterministic checklist-derived scoring and empty-state button disabled state.
+  - [x] Add document-role-aware result stabilization so the displayed score is derived from the final cited checklist, not the model's separate top-level score.
+  - [x] Strengthen Gemini prompt/config for deterministic requirement ordering and document role separation.
+  - [x] Fix empty-state run buttons to be fully disabled during analysis.
+  - [ ] Verify tests, build, security scan, GitHub cleanliness, push, and Vercel.
 
 ## Notes
 
@@ -156,6 +165,28 @@
     - `npm run build` passed
     - secret scan found no API-key-like tokens outside ignored local folders
     - `npm audit --json` reported 0 vulnerabilities
+- Current execution task: implement Phase 3.7 repeated-analysis consistency repair.
+  - User reported the same two uploaded files returned varying scores across repeated runs: approximately 65, 45, 75, then 65.
+  - Root cause hypothesis under test:
+    - Gemini creates a fresh probabilistic matrix/score on every request.
+    - The app trusted the model's top-level `score` even though that number can drift independently from the checklist rows.
+    - Empty-state run buttons missed `disabled={isAnalyzing}`, so one analysis entry point remained clickable during an active run.
+  - Fix direction:
+    - keep Gemini for extracting the cited checklist
+    - derive the final displayed score deterministically from normalized checklist row statuses and risks
+    - use document role hints in the prompt and document wrappers
+    - disable every run-analysis entry point while `isAnalyzing` is true
+  - Implementation completed locally:
+    - `normalizeComplianceResult` now calculates score from checklist row status/risk instead of accepting Gemini's top-level score
+    - `stabilizeComplianceResult` downgrades positive rows that cite only RFP requirement text instead of bidder response evidence
+    - `/api/analyze` applies stabilization before returning the result
+    - Gemini analysis prompt now declares document roles and uses deterministic generation config (`temperature: 0`, `topP: 0.1`, `topK: 1`)
+    - empty overall-state run buttons now use `disabled={isAnalyzing}` and show loading spinners
+  - Local verification in progress:
+    - red tests failed as expected before implementation
+    - focused tests passed: `tests/compliance.test.ts`, `tests/ui-source.test.ts`
+    - `npm test` passed: 13 files / 35 tests
+    - `npm run build` passed
 
 ## Verification Log
 

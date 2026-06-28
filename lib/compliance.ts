@@ -1,3 +1,5 @@
+import { hasLikelyResponseEvidenceFile, isLikelyResponseEvidenceFile, normalizeDocumentName } from "./document-roles";
+
 export type ComplianceStatus = "Compliant" | "Partial" | "Gap" | "Needs Review";
 export type RiskLevel = "Low" | "Medium" | "High";
 
@@ -27,6 +29,17 @@ export type ComplianceResult = {
 
 const STATUSES: ComplianceStatus[] = ["Compliant", "Partial", "Gap", "Needs Review"];
 const RISKS: RiskLevel[] = ["Low", "Medium", "High"];
+const STATUS_SCORES: Record<ComplianceStatus, number> = {
+  Compliant: 100,
+  Partial: 55,
+  "Needs Review": 35,
+  Gap: 0,
+};
+const RISK_PENALTIES: Record<RiskLevel, number> = {
+  Low: 0,
+  Medium: 5,
+  High: 10,
+};
 
 export const FALLBACK_COMPLIANCE_RESULT: ComplianceResult = {
   score: 0,
@@ -96,6 +109,72 @@ export function forceNoResponseEvidenceResult(result: ComplianceResult, language
         ? "أعد تشغيل التحليل بعد إضافة أدلة الاستجابة."
         : "Run the analysis again after adding response evidence.",
     ],
+  };
+}
+
+export function calculateComplianceScore(matrix: ComplianceMatrixRow[]): number {
+  if (matrix.length === 0) {
+    return 0;
+  }
+
+  const total = matrix.reduce((sum, row) => {
+    const penalty = row.status === "Compliant" ? 0 : RISK_PENALTIES[row.risk];
+    return sum + Math.max(0, STATUS_SCORES[row.status] - penalty);
+  }, 0);
+
+  return Math.min(100, Math.max(0, Math.round(total / matrix.length / 5) * 5));
+}
+
+function comparableName(value: string): string {
+  return normalizeDocumentName(value).replace(/-(pdf|docx|txt|jpg|jpeg|png|webp)$/i, "");
+}
+
+function citationMatchesKnownResponse(citationFile: string, responseFiles: string[]): boolean {
+  const citationName = comparableName(citationFile);
+
+  return responseFiles.some((fileName) => {
+    const responseName = comparableName(fileName);
+    return citationName.includes(responseName) || responseName.includes(citationName);
+  });
+}
+
+function rowHasResponseEvidenceCitation(row: ComplianceMatrixRow, responseFiles: string[]): boolean {
+  return row.citations.some(
+    (citation) => citationMatchesKnownResponse(citation.file, responseFiles) || isLikelyResponseEvidenceFile(citation.file),
+  );
+}
+
+export function stabilizeComplianceResult(
+  result: ComplianceResult,
+  fileNames: string[],
+  language: "en" | "ar" = "en",
+): ComplianceResult {
+  if (!hasLikelyResponseEvidenceFile(fileNames)) {
+    return forceNoResponseEvidenceResult(result, language);
+  }
+
+  const responseFiles = fileNames.filter(isLikelyResponseEvidenceFile);
+  const missingResponseEvidenceText =
+    language === "ar"
+      ? "لم يتم العثور على دليل مقتبس من عرض المورد أو مستند الاستجابة لهذا البند."
+      : "No cited vendor proposal or response evidence was found for this row.";
+  const matrix = result.matrix.map((row) => {
+    if (row.status === "Gap" || row.status === "Needs Review" || rowHasResponseEvidenceCitation(row, responseFiles)) {
+      return row;
+    }
+
+    return {
+      ...row,
+      status: "Gap" as const,
+      risk: "High" as const,
+      response: missingResponseEvidenceText,
+    };
+  });
+
+  return {
+    ...result,
+    score: calculateComplianceScore(matrix),
+    matrix,
   };
 }
 
@@ -227,10 +306,8 @@ export function normalizeComplianceResult(value: unknown): ComplianceResult {
     return FALLBACK_COMPLIANCE_RESULT;
   }
 
-  const score = typeof object.score === "number" ? object.score : Number(object.score);
-
   return {
-    score: Number.isFinite(score) ? Math.min(100, Math.max(0, Math.round(score))) : 0,
+    score: calculateComplianceScore(matrix),
     executiveBrief: toString(object.executiveBrief, FALLBACK_COMPLIANCE_RESULT.executiveBrief),
     matrix,
     trace: toStringList(object.trace).length

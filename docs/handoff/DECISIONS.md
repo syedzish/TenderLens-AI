@@ -71,6 +71,8 @@ Detailed upload limits should appear only on failure or help expansion.
 - Optional fallback models can be configured with `GEMINI_FALLBACK_MODELS`, for example `gemini-2.5-flash-lite,gemini-3.1-flash-lite,gemini-3.5-flash,gemini-2.5-flash`.
 - Use `GEMINI_API_KEY` server-side only.
 - Chat should answer in Arabic when Arabic UI is selected or the user writes Arabic.
+- Live analysis still uses Gemini to extract the cited checklist, but the displayed score is calculated deterministically from the normalized checklist rows. Do not trust a separate model-provided top-level score because it can drift between repeated runs.
+- Tender/RFP documents are requirement sources, not proof of bidder compliance. Positive checklist rows must be backed by cited vendor proposal/response evidence, otherwise they are downgraded before scoring.
 
 ## UI/UX Decisions
 

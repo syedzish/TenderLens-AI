@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getDemoAnalysis, isDemoFileSet } from "@/lib/demo-analysis";
-import { forceNoResponseEvidenceResult } from "@/lib/compliance";
+import { stabilizeComplianceResult } from "@/lib/compliance";
 import { hasLikelyResponseEvidenceFile } from "@/lib/document-roles";
 import { analyzeDocuments } from "@/lib/gemini";
 import { friendlyGeminiError, GeminiFallbackError, getGeminiModelCandidates, runWithGeminiFallback } from "@/lib/gemini-fallback";
@@ -85,7 +85,11 @@ export async function POST(request: Request) {
     const hasResponseEvidence = hasLikelyResponseEvidenceFile(manifest.files.map((file) => file.safeName));
 
     return NextResponse.json({
-      result: hasResponseEvidence ? analysis.value : forceNoResponseEvidenceResult(analysis.value, language),
+      result: stabilizeComplianceResult(
+        analysis.value,
+        manifest.files.map((file) => file.safeName),
+        language,
+      ),
       meta: {
         model: analysis.model,
         attemptedModels: analysis.attemptedModels,

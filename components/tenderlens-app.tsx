@@ -1383,17 +1383,19 @@ export function TenderLensApp() {
                     <button
                       type="button"
                       onClick={() => (files.length ? void runAnalysis() : fileInputRef.current?.click())}
-                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-teal px-4 text-sm font-semibold text-white"
+                      disabled={isAnalyzing}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-teal px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <UploadCloud className="h-4 w-4" />
+                      {isAnalyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
                       {files.length ? text.runSelected : text.uploadRun}
                     </button>
                     <button
                       type="button"
                       onClick={runExampleAnalysis}
-                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-line bg-paper px-4 text-sm font-semibold text-ink"
+                      disabled={isAnalyzing}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-line bg-paper px-4 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <Files className="h-4 w-4 text-cobalt" />
+                      {isAnalyzing ? <Loader2 className="h-4 w-4 animate-spin text-cobalt" /> : <Files className="h-4 w-4 text-cobalt" />}
                       {text.runExample}
                     </button>
                   </div>

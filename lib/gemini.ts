@@ -7,6 +7,7 @@ import {
 
 import type { NormalizedChatPayload } from "@/lib/chat";
 import { isFallbackComplianceResult, normalizeComplianceResult, type ComplianceResult } from "@/lib/compliance";
+import { classifyDocumentRole } from "@/lib/document-roles";
 import { prepareDocumentsForGemini, type PreparedUploadFile } from "@/lib/document-processing";
 
 const SYSTEM_INSTRUCTION = `
@@ -89,10 +90,19 @@ export type ChatWithDocumentsInput = {
 
 function buildPrompt(files: PreparedUploadFile[], language = "en"): string {
   const names = files.map((file) => file.meta.safeName).join(", ");
+  const roles = files
+    .map((file) => {
+      const role = classifyDocumentRole(file.meta.safeName);
+      return `- ${file.meta.safeName}: ${role === "response" ? "vendor response evidence" : "tender/RFP requirement source"}`;
+    })
+    .join("\n");
 
   return `
 Create a cited compliance matrix for these uploaded tender documents: ${names}.
 Respond in ${language === "ar" ? "Arabic" : "English"}.
+
+Document roles:
+${roles}
 
 Scoring:
 - 90-100: all mandatory requirements are clearly satisfied.
@@ -102,6 +112,11 @@ Scoring:
 
 Matrix rules:
 - Prefer mandatory tender requirements, eligibility criteria, delivery commitments, security/compliance controls, commercial requirements, and SLA obligations.
+- Use tender/RFP requirement-source documents only to identify requirements. They are not proof that the bidder complies.
+- Use vendor response evidence documents to decide Compliant, Partial, Gap, or Needs Review.
+- Do not mark a row Compliant unless the cited response evidence clearly satisfies the requirement.
+- If no vendor response evidence supports a requirement, mark it Gap with High risk.
+- Use the most important 8 to 10 mandatory requirements in the order they appear in the tender/RFP where possible.
 - Every matrix row must include at least one exact citation quote from the uploaded evidence.
 - Cite the file name. For PDFs, include a page label only if the document provides one.
 - Keep the executive brief concise and judge-ready.
@@ -113,7 +128,8 @@ async function buildParts(files: PreparedUploadFile[], language?: "en" | "ar"): 
   const preparedDocuments = await prepareDocumentsForGemini(files);
 
   for (const document of preparedDocuments) {
-    parts.push(createPartFromText(`\n--- Begin document: ${document.safeName} ---\n`));
+    const role = classifyDocumentRole(document.safeName) === "response" ? "vendor response evidence" : "tender/RFP requirement source";
+    parts.push(createPartFromText(`\n--- Begin ${role} document: ${document.safeName} ---\n`));
 
     if (document.kind === "inline") {
       parts.push(createPartFromBase64(document.base64, document.mimeType));
@@ -121,7 +137,7 @@ async function buildParts(files: PreparedUploadFile[], language?: "en" | "ar"): 
       parts.push(createPartFromText(document.text));
     }
 
-    parts.push(createPartFromText(`\n--- End document: ${document.safeName} ---\n`));
+    parts.push(createPartFromText(`\n--- End ${role} document: ${document.safeName} ---\n`));
   }
 
   return parts;
@@ -138,7 +154,9 @@ export async function analyzeDocuments({
     model,
     contents: await buildParts(files, language),
     config: {
-      temperature: 0.15,
+      temperature: 0,
+      topP: 0.1,
+      topK: 1,
       maxOutputTokens: 4096,
       responseMimeType: "application/json",
       responseJsonSchema: RESPONSE_JSON_SCHEMA,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { forceNoResponseEvidenceResult, normalizeComplianceResult } from "../lib/compliance";
+import { forceNoResponseEvidenceResult, normalizeComplianceResult, stabilizeComplianceResult } from "../lib/compliance";
 
 describe("compliance result normalization", () => {
   it("clamps scores and keeps only usable matrix rows with citations", () => {
@@ -62,6 +62,77 @@ describe("compliance result normalization", () => {
 
     expect(result.matrix[0].risk).toBe("High");
     expect(result.matrix[1].risk).toBe("Medium");
+  });
+
+  it("derives the displayed score from checklist rows instead of trusting the model score", () => {
+    const result = normalizeComplianceResult({
+      score: 99,
+      executiveBrief: "The separate model score should not drive the displayed score.",
+      matrix: [
+        {
+          requirement: "Hosted uptime must meet the required SLA.",
+          category: "SLA",
+          status: "Compliant",
+          risk: "Low",
+          response: "The bidder commits to the requested uptime.",
+          citations: [{ file: "bidder-response.docx", quote: "We commit to the requested uptime." }],
+        },
+        {
+          requirement: "Bid security must remain valid for the full period.",
+          category: "Commercial",
+          status: "Partial",
+          risk: "Medium",
+          response: "The bidder offers a shorter initial validity period.",
+          citations: [{ file: "bidder-response.docx", quote: "The guarantee is valid for 120 days." }],
+        },
+        {
+          requirement: "Data residency must be inside Saudi Arabia.",
+          category: "Security",
+          status: "Gap",
+          risk: "High",
+          response: "No Saudi data residency commitment was cited.",
+          citations: [{ file: "bidder-response.docx", quote: "Disaster recovery is hosted in the UAE." }],
+        },
+      ],
+      trace: ["Read tender", "Mapped response", "Scored rows"],
+    });
+
+    expect(result.score).toBe(50);
+  });
+
+  it("downgrades positive rows that cite only RFP requirement text as evidence", () => {
+    const result = stabilizeComplianceResult(
+      normalizeComplianceResult({
+        score: 88,
+        executiveBrief: "The bidder appears compliant.",
+        matrix: [
+          {
+            requirement: "Arabic and English support must be available from day one.",
+            category: "Functional",
+            status: "Compliant",
+            risk: "Low",
+            response: "Arabic and English support is available.",
+            citations: [{ file: "tenderlens-test-rfp-riyadh-digital-permits.pdf", quote: "The app must support Arabic and English from day one." }],
+          },
+          {
+            requirement: "Bid security must remain valid for 150 days.",
+            category: "Commercial",
+            status: "Partial",
+            risk: "Medium",
+            response: "The bidder offers 120 days with possible extension.",
+            citations: [{ file: "tenderlens-test-bidder-response-atlas-systems.docx", quote: "The bank letter is valid for 120 days." }],
+          },
+        ],
+        trace: ["Read tender", "Mapped response", "Scored rows"],
+      }),
+      ["tenderlens-test-rfp-riyadh-digital-permits.pdf", "tenderlens-test-bidder-response-atlas-systems.docx"],
+      "en",
+    );
+
+    expect(result.matrix[0].status).toBe("Gap");
+    expect(result.matrix[0].risk).toBe("High");
+    expect(result.matrix[0].response).toBe("No cited vendor proposal or response evidence was found for this row.");
+    expect(result.score).toBe(25);
   });
 
   it("returns a safe fallback result for malformed model output", () => {
