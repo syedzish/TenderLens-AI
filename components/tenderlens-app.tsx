@@ -949,16 +949,16 @@ export function TenderLensApp() {
 
       {showOnboarding ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-ink/55 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-5xl overflow-hidden rounded-2xl border border-white/50 bg-paper shadow-[0_30px_90px_rgba(16,18,20,0.35)]">
-            <div className="flex items-center justify-between border-b border-line px-5 py-4">
+          <div className="w-full max-w-4xl overflow-hidden rounded-[24px] border border-line bg-paper shadow-[0_30px_90px_rgba(16,18,20,0.35)] transition-all">
+            <div className="flex items-center justify-between border-b border-line px-6 py-4">
               <div className="flex items-center gap-3">
-                <Image src="/brand/tenderlens-logo.png" width={40} height={40} alt="" className="rounded-xl" />
+                <Image src="/brand/tenderlens-logo.png" width={40} height={40} alt="" className="rounded-xl bg-white shadow-table" />
                 <span className="font-semibold text-ink">TenderLens AI</span>
               </div>
               <button
                 type="button"
                 onClick={() => setShowOnboarding(false)}
-                className="grid h-11 w-11 place-items-center rounded-full border border-line bg-white text-ink transition hover:bg-mist"
+                className="grid h-10 w-10 place-items-center rounded-full border border-line bg-white text-ink transition duration-200 active:scale-95 hover:bg-mist"
                 aria-label={text.close}
               >
                 <X className="h-5 w-5" />
@@ -966,51 +966,70 @@ export function TenderLensApp() {
             </div>
             <div className="p-6 lg:p-8">
               {onboardingSlide === 0 ? (
-              <div className="rounded-2xl border border-line bg-white p-6 ring-2 ring-teal/30">
-                <div className="inline-flex rounded-full bg-teal/10 px-3 py-1 text-sm font-semibold text-teal">{text.slideCounterOne}</div>
-                <h2 className="mt-5 max-w-md text-3xl font-semibold leading-tight text-ink">{text.onboardingOne}</h2>
-                <p className="mt-4 max-w-lg text-base leading-7 text-graphite">{text.onboardingOneBody}</p>
-                <div className="mt-8 grid gap-3 rounded-2xl bg-mist p-4 sm:grid-cols-3">
-                  {[
-                    { label: text.onboardingChecks[0], icon: SearchCheck },
-                    { label: text.onboardingChecks[1], icon: ShieldCheck },
-                    { label: text.onboardingChecks[2], icon: AlertTriangle },
-                  ].map(({ label, icon: Icon }) => (
-                    <div key={label} className="rounded-xl bg-white p-4 text-sm font-semibold text-ink">
-                      <Icon className="mb-3 h-5 w-5 text-teal" />
-                      {label}
-                    </div>
-                  ))}
+                <div className="grid gap-8 lg:grid-cols-[1.2fr_1fr] lg:items-center">
+                  <div>
+                    <div className="inline-flex rounded-full bg-teal/10 px-3 py-1 text-xs font-semibold text-teal uppercase tracking-wider">{text.slideCounterOne}</div>
+                    <h2 className="mt-4 text-3xl font-semibold leading-tight text-ink lg:text-4xl">{text.onboardingOne}</h2>
+                    <p className="mt-4 text-base leading-7 text-graphite max-w-lg">{text.onboardingOneBody}</p>
+                  </div>
+                  <div className="grid gap-3 rounded-2xl bg-mist/50 p-5 border border-line">
+                    {[
+                      { label: text.onboardingChecks[0], icon: SearchCheck, color: "text-cobalt bg-cobalt/10" },
+                      { label: text.onboardingChecks[1], icon: ShieldCheck, color: "text-emerald-600 bg-emerald-500/10" },
+                      { label: text.onboardingChecks[2], icon: AlertTriangle, color: "text-danger bg-danger/10" },
+                    ].map(({ label, icon: Icon, color }) => (
+                      <div key={label} className="flex items-center gap-4 rounded-xl bg-white p-4 shadow-sm border border-line/30 transition hover:translate-x-1 hover:shadow-table duration-200">
+                        <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${color}`}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <span className="font-semibold text-ink text-sm sm:text-base">{label}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
               ) : (
-              <div className="rounded-2xl border border-line bg-white p-6 ring-2 ring-teal/30">
-                <div className="inline-flex rounded-full bg-cobalt/10 px-3 py-1 text-sm font-semibold text-cobalt">{text.slideCounterTwo}</div>
-                <h2 className="mt-5 text-3xl font-semibold leading-tight text-ink">{text.onboardingTwo}</h2>
-                <div className="mt-6 grid gap-3">
-                  {[text.stepUpload, text.stepWait, text.stepAsk, text.stepDownload].map((step, index) => (
-                    <div key={step} className="flex items-center gap-4 rounded-xl border border-line bg-paper p-4">
-                      <span className="grid h-9 w-9 place-items-center rounded-full bg-teal text-sm font-semibold text-white">
-                        {index + 1}
-                      </span>
-                      <span className="font-medium text-ink">{step}</span>
+                <div className="grid gap-8 lg:grid-cols-[1.2fr_1fr] lg:items-center">
+                  <div>
+                    <div className="inline-flex rounded-full bg-cobalt/10 px-3 py-1 text-xs font-semibold text-cobalt uppercase tracking-wider">{text.slideCounterTwo}</div>
+                    <h2 className="mt-4 text-3xl font-semibold leading-tight text-ink lg:text-4xl">{text.onboardingTwo}</h2>
+                    <p className="mt-3 text-sm leading-6 text-graphite font-normal">
+                      Follow these simple steps to analyze your proposals. You can also read the detailed instructions in the user guide.
+                    </p>
+                    <div className="mt-5">
+                      <Link href="/how-to-use" className="inline-flex items-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-cobalt shadow-sm transition hover:bg-mist hover:text-[#1d4ed8]">
+                        <BookOpen className="h-4 w-4" />
+                        {text.howToUse} TenderLens AI
+                      </Link>
                     </div>
-                  ))}
+                  </div>
+                  <div className="relative pl-6 before:absolute before:left-3.5 before:top-4 before:bottom-4 before:w-0.5 before:bg-line">
+                    {[text.stepUpload, text.stepWait, text.stepAsk, text.stepDownload].map((step, index) => {
+                      const colors = [
+                        "bg-teal text-white ring-teal/20",
+                        "bg-cobalt text-white ring-cobalt/20",
+                        "bg-fuchsia-600 text-white ring-fuchsia-100",
+                        "bg-rose-600 text-white ring-rose-100",
+                      ];
+                      return (
+                        <div key={step} className="relative flex items-center gap-4 py-3 first:pt-0 last:pb-0 transition hover:translate-x-1 duration-200">
+                          <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-semibold ring-4 ${colors[index]}`}>
+                            {index + 1}
+                          </span>
+                          <span className="font-semibold text-ink text-sm sm:text-base leading-snug">{step}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <Link href="/how-to-use" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-cobalt">
-                  <BookOpen className="h-4 w-4" />
-                  {text.howToUse} TenderLens AI
-                </Link>
-              </div>
               )}
             </div>
             <div className="flex items-center justify-between border-t border-line px-6 py-5">
               <div className="flex gap-2">
-                <button type="button" onClick={() => setOnboardingSlide(0)} className={`h-2.5 w-8 rounded-full ${onboardingSlide === 0 ? "bg-teal" : "bg-line"}`} aria-label={text.slideOne} />
-                <button type="button" onClick={() => setOnboardingSlide(1)} className={`h-2.5 w-8 rounded-full ${onboardingSlide === 1 ? "bg-teal" : "bg-line"}`} aria-label={text.slideTwo} />
+                <button type="button" onClick={() => setOnboardingSlide(0)} className={`h-2.5 w-8 rounded-full transition-all ${onboardingSlide === 0 ? "bg-teal w-8" : "bg-line hover:bg-graphite/40"}`} aria-label={text.slideOne} />
+                <button type="button" onClick={() => setOnboardingSlide(1)} className={`h-2.5 w-8 rounded-full transition-all ${onboardingSlide === 1 ? "bg-teal w-8" : "bg-line hover:bg-graphite/40"}`} aria-label={text.slideTwo} />
               </div>
               <div className="flex items-center gap-3">
-                <button type="button" onClick={() => setShowOnboarding(false)} className="h-11 rounded-xl border border-line bg-white px-5 font-semibold text-graphite">
+                <button type="button" onClick={() => setShowOnboarding(false)} className="h-11 rounded-xl border border-line bg-white px-5 font-semibold text-graphite transition duration-200 active:scale-97 hover:bg-mist">
                   {text.skip}
                 </button>
                 <button
@@ -1023,7 +1042,7 @@ export function TenderLensApp() {
 
                     setShowOnboarding(false);
                   }}
-                  className="h-11 rounded-xl bg-teal px-5 font-semibold text-white shadow-table"
+                  className="h-11 rounded-xl bg-teal px-5 font-semibold text-white shadow-table transition duration-200 active:scale-97 hover:bg-[#066865]"
                 >
                   {onboardingSlide === 0 ? text.nextSlide : text.getStarted}
                 </button>
@@ -1244,34 +1263,48 @@ export function TenderLensApp() {
             </div>
           ) : null}
           {!hasAnalyzed ? (
-            <div className="rounded-[28px] border border-ink/10 bg-ink p-6 text-white shadow-soft">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-semibold text-white/80">
-                <Sparkles className="h-4 w-4 text-amber" />
-                {text.previewNotice}
-              </div>
-              <div className="mt-5">
-                <h2 className="text-3xl font-semibold leading-tight">{text.startTitle}</h2>
-                <p className="mt-3 max-w-[80ch] text-base leading-7 text-white/72">{text.startBody}</p>
-              </div>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <button
-                  type="button"
-                  onClick={() => (files.length ? void runAnalysis() : fileInputRef.current?.click())}
-                  disabled={isAnalyzing}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-teal px-5 text-sm font-semibold text-white shadow-table disabled:opacity-60 transition-transform active:scale-97 hover:bg-[#066865]"
-                >
-                  {isAnalyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
-                  {files.length ? text.runSelected : text.uploadRun}
-                </button>
-                <button
-                  type="button"
-                  onClick={runExampleAnalysis}
-                  disabled={isAnalyzing}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 text-sm font-semibold text-white disabled:opacity-60 transition-transform active:scale-97 hover:bg-white/20"
-                >
-                  <Files className="h-4 w-4" />
-                  {text.runExample}
-                </button>
+            <div className="rounded-[28px] border border-ink/10 bg-ink p-6 text-white shadow-soft overflow-hidden">
+              <div className="grid gap-6 lg:grid-cols-[1fr_360px] lg:items-center">
+                <div className="flex flex-col justify-between h-full">
+                  <div>
+                    <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-semibold text-white/80">
+                      <Sparkles className="h-4 w-4 text-amber" />
+                      {text.previewNotice}
+                    </div>
+                    <h2 className="mt-5 text-3xl font-semibold leading-tight">{text.startTitle}</h2>
+                    <p className="mt-3 max-w-2xl text-base leading-7 text-white/72">{text.startBody}</p>
+                  </div>
+                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                    <button
+                      type="button"
+                      onClick={() => (files.length ? void runAnalysis() : fileInputRef.current?.click())}
+                      disabled={isAnalyzing}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-teal px-5 text-sm font-semibold text-white shadow-table disabled:opacity-60 transition-transform active:scale-97 hover:bg-[#066865]"
+                    >
+                      {isAnalyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
+                      {files.length ? text.runSelected : text.uploadRun}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={runExampleAnalysis}
+                      disabled={isAnalyzing}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 text-sm font-semibold text-white disabled:opacity-60 transition-transform active:scale-97 hover:bg-white/20"
+                    >
+                      <Files className="h-4 w-4" />
+                      {text.runExample}
+                    </button>
+                  </div>
+                </div>
+                <div className="hidden lg:block relative h-[220px] w-full rounded-2xl overflow-hidden bg-white/5 border border-white/10 shadow-soft">
+                  <Image
+                    src="/brand/analysis-illustration.png"
+                    alt=""
+                    fill
+                    sizes="360px"
+                    priority
+                    className="object-cover opacity-85 hover:scale-105 transition-transform duration-700 ease-out"
+                  />
+                </div>
               </div>
             </div>
           ) : null}
