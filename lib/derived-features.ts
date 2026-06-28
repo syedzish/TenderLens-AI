@@ -2,6 +2,8 @@ import type { ComplianceMatrixRow, ComplianceResult } from "@/lib/compliance";
 
 type AppLanguage = "en" | "ar";
 
+const TENDER_MAP_ROW_LIMIT = 6;
+
 export type TenderMapNodeKind = "file" | "requirement" | "risk" | "evidence" | "action";
 
 export type TenderMapNode = {
@@ -129,7 +131,9 @@ export function buildTenderMap(result: ComplianceResult, files: string[], langua
     });
   }
 
-  result.matrix.forEach((row, index) => {
+  const visibleRows = result.matrix.slice(0, TENDER_MAP_ROW_LIMIT);
+
+  visibleRows.forEach((row, index) => {
     const requirementId = `requirement-${index}-${slug(row.requirement, "requirement")}`;
     const riskId = `risk-${index}-${row.risk.toLowerCase()}`;
 
@@ -185,23 +189,26 @@ export function buildTenderMap(result: ComplianceResult, files: string[], langua
     });
   });
 
-  result.nextActions.slice(0, 5).forEach((action, index) => {
-    const actionId = `action-${index}`;
-    nodes.push({
-      id: actionId,
-      label: firstWords(action, 10),
-      kind: "action",
-    });
+  const actionSlots = Math.max(0, TENDER_MAP_ROW_LIMIT - visibleRows.length);
 
-    const riskNode = nodes.find((node) => node.kind === "risk" && node.risk !== "Low");
-    if (riskNode) {
+  const actionSource = nodes.find((node) => node.kind === "risk" && node.risk !== "Low") ?? nodes.find((node) => node.kind === "risk");
+
+  if (actionSource) {
+    result.nextActions.slice(0, actionSlots).forEach((action, index) => {
+      const actionId = `action-${index}`;
+      nodes.push({
+        id: actionId,
+        label: firstWords(action, 10),
+        kind: "action",
+      });
+
       edges.push({
-        from: riskNode.id,
+        from: actionSource.id,
         to: actionId,
         label: copy.edges.leadsTo,
       });
-    }
-  });
+    });
+  }
 
   return { nodes, edges };
 }

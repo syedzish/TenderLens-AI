@@ -43,6 +43,62 @@ describe("derived review features", () => {
     expect(map.edges.some((edge) => edge.label === "leads to")).toBe(true);
   });
 
+  it("keeps the compact tender map outcomes connected to visible requirement paths", () => {
+    const manyRowResult: ComplianceResult = {
+      ...result,
+      matrix: Array.from({ length: 8 }, (_, index) => ({
+        requirement: `Mandatory requirement ${index + 1} must be checked.`,
+        category: "Technical",
+        status: index % 2 === 0 ? "Partial" : "Compliant",
+        risk: index % 2 === 0 ? "Medium" : "Low",
+        response: `Evidence response ${index + 1}.`,
+        citations: [{ file: "Proposal.pdf", quote: `Evidence quote ${index + 1}.` }],
+      })),
+      nextActions: [
+        "Clarify bid security validity.",
+        "Confirm Arabic launch timing.",
+        "Verify data residency.",
+      ],
+    };
+
+    const map = buildTenderMap(manyRowResult, ["RFP.pdf", "Proposal.pdf"]);
+    const requirementIds = new Set(map.nodes.filter((node) => node.kind === "requirement").map((node) => node.id));
+    const riskNodes = map.nodes.filter((node) => node.kind === "risk");
+    const actionNodes = map.nodes.filter((node) => node.kind === "action");
+
+    expect(requirementIds.size).toBe(6);
+    expect(riskNodes).toHaveLength(6);
+    expect(actionNodes).toHaveLength(0);
+    for (const riskNode of riskNodes) {
+      const incomingEdge = map.edges.find((edge) => edge.to === riskNode.id);
+      expect(incomingEdge).toBeDefined();
+      expect(requirementIds.has(incomingEdge?.from ?? "")).toBe(true);
+    }
+  });
+
+  it("does not create unconnected action cards when only low-risk rows are visible", () => {
+    const lowRiskResult: ComplianceResult = {
+      ...result,
+      matrix: [
+        {
+          requirement: "The portal must provide monthly reporting.",
+          category: "Functional",
+          status: "Compliant",
+          risk: "Low",
+          response: "Monthly reporting is included.",
+          citations: [{ file: "Proposal.pdf", quote: "Monthly reports are included." }],
+        },
+      ],
+      nextActions: ["Confirm the reporting template with the project owner."],
+    };
+
+    const map = buildTenderMap(lowRiskResult, ["Proposal.pdf"]);
+    const actionNode = map.nodes.find((node) => node.kind === "action");
+
+    expect(actionNode).toBeDefined();
+    expect(map.edges.some((edge) => edge.to === actionNode?.id)).toBe(true);
+  });
+
   it("builds a five-slide briefing deck without another model call", () => {
     const deck = buildBriefingDeck(result);
 
