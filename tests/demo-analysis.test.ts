@@ -5,6 +5,13 @@ import { DEMO_FILE_NAMES, getDemoAnalysis, isDemoFileSet } from "../lib/demo-ana
 describe("verified demo analysis", () => {
   it("recognizes the preloaded files regardless of upload order", () => {
     expect(isDemoFileSet([...DEMO_FILE_NAMES].reverse())).toBe(true);
+    expect(
+      isDemoFileSet([
+        "Riyadh Smart Parking RFP.pdf",
+        "Najm Urban Mobility Proposal.docx",
+        "Technical Compliance Addendum.pdf",
+      ]),
+    ).toBe(true);
     expect(isDemoFileSet(["najm-urban-mobility-proposal.docx", "technical-compliance-addendum.pdf"])).toBe(false);
   });
 

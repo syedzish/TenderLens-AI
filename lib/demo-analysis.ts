@@ -254,7 +254,8 @@ export function getDemoAnalysis(language: AppLanguage): ComplianceResult {
 }
 
 export function isDemoFileSet(fileNames: string[]): boolean {
-  const normalized = fileNames.map((file) => file.toLowerCase()).sort();
+  const normalize = (fileName: string) => fileName.toLowerCase().replace(/[_\s]+/g, "-");
+  const normalized = fileNames.map(normalize).sort();
   const expected = [...DEMO_FILE_NAMES].sort();
   return normalized.length === expected.length && expected.every((name, index) => normalized[index] === name);
 }
