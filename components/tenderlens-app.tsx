@@ -212,7 +212,9 @@ const labels = {
     previewNotice: "Start your analysis by uploading files or running the preloaded example.",
     startTitle: "Start your analysis",
     startBody:
-      "Upload tender files or run the preloaded example. TenderLens will then fill this workspace with a score, checklist, evidence, map, deck, and questions. Using the \"Run Analysis with preloaded files\" button (or uploading the exact example files) will generate pre-generated stored output. This is done to save Gemini API quota. You can use the App for live analysis by bringing your own files and uploading them.",
+      "Upload tender files or run the preloaded example. TenderLens will then fill this workspace with a score, checklist, evidence, map, deck, and questions.",
+    startNotice:
+      "Using the \"Run Analysis with preloaded files\" button (or uploading the exact example files) will generate a preloaded stored output to save Gemini API quota. Bring your own files for a live analysis.",
     emptyOverallTitle: "No analysis yet",
     emptyOverallBody: "Your overall score and executive summary will appear here after TenderLens checks the files.",
     emptyChecklistTitle: "No requirements checked yet",
@@ -349,7 +351,9 @@ const labels = {
     previewNotice: "ابدأ التحليل برفع الملفات أو تشغيل المثال الجاهز.",
     startTitle: "ابدأ التحليل",
     startBody:
-      "ارفع ملفات المناقصة أو شغل المثال الجاهز. سيملأ TenderLens هذه المساحة بالنتيجة والقائمة والأدلة والخريطة والعرض والأسئلة. سيؤدي استخدام زر \"حلل الملفات الجاهزة\" (أو رفع ملفات المثال المحددة) إلى إنتاج مخرجات مخزنة ومعدة مسبقًا. يتم ذلك لتوفير حصة Gemini API. يمكنك استخدام التطبيق لإجراء تحليل مباشر عن طريق جلب ملفاتك الخاصة ورفعها.",
+      "ارفع ملفات المناقصة أو شغل المثال الجاهز. سيملأ TenderLens هذه المساحة بالنتيجة والقائمة والأدلة والخريطة والعرض والأسئلة.",
+    startNotice:
+      "يؤدي استخدام زر \"حلل الملفات الجاهزة\" (أو رفع ملفات المثال المحددة) إلى عرض مخرجات مخزنة ومعدة مسبقًا لتوفير حصة Gemini API. يرجى جلب ملفاتك الخاصة لإجراء تحليل مباشر.",
     emptyOverallTitle: "لا يوجد تحليل بعد",
     emptyOverallBody: "ستظهر النتيجة العامة والملخص التنفيذي هنا بعد فحص الملفات.",
     emptyChecklistTitle: "لم يتم فحص أي متطلبات بعد",
@@ -1253,6 +1257,12 @@ export function TenderLensApp() {
                 <div>
                   <h2 className="text-3xl font-semibold leading-tight">{text.startTitle}</h2>
                   <p className="mt-3 max-w-3xl text-base leading-7 text-white/72">{text.startBody}</p>
+                  <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/5 p-3 text-xs leading-5 text-white/60 max-w-3xl border border-white/10">
+                    <Sparkles className="h-4 w-4 shrink-0 text-amber mt-0.5" />
+                    <div>
+                      {text.startNotice}
+                    </div>
+                  </div>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
                   <button
