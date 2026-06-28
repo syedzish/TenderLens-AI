@@ -161,7 +161,11 @@ async function createPptx(input: Omit<ReportExportInput, "format">): Promise<Uin
 
   deck.forEach((deckSlide, index) => {
     const slide = pptx.addSlide();
-    slide.background = { color: "F5F1E8" };
+    const accent = index % 3 === 0 ? "087B78" : index % 3 === 1 ? "BD750F" : "285ED8";
+    const softAccent = index % 3 === 0 ? "EDF9F5" : index % 3 === 1 ? "FFF7E8" : "EEF4FF";
+    const lineAccent = index % 3 === 0 ? "9AD7CC" : index % 3 === 1 ? "E8C98F" : "B6C8F3";
+
+    slide.background = { color: "101214" };
     slide.addShape(pptx.ShapeType.roundRect, {
       x: 0.35,
       y: 0.3,
@@ -171,14 +175,31 @@ async function createPptx(input: Omit<ReportExportInput, "format">): Promise<Uin
       fill: { color: "FFFDF8" },
       line: { color: "D7DFDA", width: 1 },
     });
+    slide.addShape(pptx.ShapeType.rect, {
+      x: 0.35,
+      y: 0.3,
+      w: 0.18,
+      h: 6.9,
+      fill: { color: accent },
+      line: { color: accent, transparency: 100 },
+    });
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x: 0.72,
+      y: 5.55,
+      w: 2.35,
+      h: 0.88,
+      rectRadius: 0.12,
+      fill: { color: "101214" },
+      line: { color: "101214", transparency: 100 },
+    });
     slide.addText("TenderLens AI", {
       x: 0.75,
       y: 0.58,
       w: 2.2,
       h: 0.28,
-      fontSize: 11,
+      fontSize: 12,
       bold: true,
-      color: "087B78",
+      color: accent,
       align: isArabic ? "right" : "left",
     });
     slide.addText(`${index + 1} / ${deck.length}`, {
@@ -191,23 +212,54 @@ async function createPptx(input: Omit<ReportExportInput, "format">): Promise<Uin
       color: "526063",
       align: "right",
     });
+    slide.addText(input.language === "ar" ? "النتيجة" : "Score", {
+      x: 0.95,
+      y: 5.76,
+      w: 0.9,
+      h: 0.2,
+      fontSize: 10,
+      bold: true,
+      color: "F5F1E8",
+      align: isArabic ? "right" : "left",
+      rtlMode: isArabic,
+    });
+    slide.addText(`${input.result.score}`, {
+      x: 1.9,
+      y: 5.62,
+      w: 0.9,
+      h: 0.42,
+      fontSize: 28,
+      bold: true,
+      color: "FFFFFF",
+      align: "right",
+    });
+    slide.addText("/100", {
+      x: 2.42,
+      y: 5.98,
+      w: 0.45,
+      h: 0.16,
+      fontSize: 8,
+      bold: true,
+      color: "F5F1E8",
+      align: "right",
+    });
     slide.addText(deckSlide.eyebrow, {
       x: 0.75,
       y: 1.1,
       w: 3.1,
-      h: 0.32,
-      fontSize: 12,
+      h: 0.35,
+      fontSize: 13,
       bold: true,
-      color: "BD750F",
+      color: accent,
       align: isArabic ? "right" : "left",
       rtlMode: isArabic,
     });
     slide.addText(deckSlide.title, {
       x: 0.75,
       y: 1.5,
-      w: 11.7,
-      h: 0.85,
-      fontSize: 28,
+      w: 5.35,
+      h: 2.2,
+      fontSize: 38,
       bold: true,
       color: "101214",
       breakLine: false,
@@ -215,23 +267,79 @@ async function createPptx(input: Omit<ReportExportInput, "format">): Promise<Uin
       align: isArabic ? "right" : "left",
       rtlMode: isArabic,
     });
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x: 6.35,
+      y: 1.12,
+      w: 5.95,
+      h: 5.28,
+      rectRadius: 0.14,
+      fill: { color: "F5F1E8" },
+      line: { color: "D7DFDA", width: 1 },
+    });
+    slide.addText(input.language === "ar" ? "النقاط المهمة" : "Key points", {
+      x: 6.7,
+      y: 1.38,
+      w: 5.2,
+      h: 0.32,
+      fontSize: 18,
+      bold: true,
+      color: "101214",
+      align: isArabic ? "right" : "left",
+      rtlMode: isArabic,
+    });
 
     deckSlide.bullets.slice(0, 5).forEach((bullet, bulletIndex) => {
-      slide.addText(`- ${bullet}`, {
-        x: 1,
-        y: 2.65 + bulletIndex * 0.72,
-        w: 11.2,
-        h: 0.52,
-        margin: 0.12,
-        fontSize: 14,
+      const y = 1.92 + bulletIndex * 0.84;
+      slide.addShape(pptx.ShapeType.roundRect, {
+        x: 6.7,
+        y,
+        w: 5.25,
+        h: 0.66,
+        rectRadius: 0.08,
+        fill: { color: bulletIndex % 2 === 0 ? softAccent : "FFFFFF" },
+        line: { color: bulletIndex % 2 === 0 ? lineAccent : "D7DFDA", transparency: 15 },
+      });
+      slide.addShape(pptx.ShapeType.ellipse, {
+        x: 6.9,
+        y: y + 0.17,
+        w: 0.3,
+        h: 0.3,
+        fill: { color: accent },
+        line: { color: accent, transparency: 100 },
+      });
+      slide.addText(String(bulletIndex + 1), {
+        x: 6.9,
+        y: y + 0.205,
+        w: 0.3,
+        h: 0.18,
+        fontSize: 8,
+        bold: true,
+        color: "FFFFFF",
+        align: "center",
+      });
+      slide.addText(bullet, {
+        x: 7.35,
+        y: y + 0.1,
+        w: 4.35,
+        h: 0.46,
+        margin: 0.04,
+        fontSize: 16,
         color: "283038",
         fit: "shrink",
         breakLine: false,
         align: isArabic ? "right" : "left",
         rtlMode: isArabic,
-        fill: { color: bulletIndex % 2 === 0 ? "EDF9F5" : "EEF4FF" },
-        line: { color: bulletIndex % 2 === 0 ? "9AD7CC" : "B6C8F3", transparency: 25 },
       });
+    });
+    slide.addText(input.language === "ar" ? "مراجعة مولدة بالذكاء الاصطناعي. تحقق قبل اتخاذ قرارات الشراء." : "AI-generated review. Verify before making procurement decisions.", {
+      x: 0.75,
+      y: 6.62,
+      w: 11.8,
+      h: 0.22,
+      fontSize: 9,
+      color: "526063",
+      align: isArabic ? "right" : "left",
+      rtlMode: isArabic,
     });
   });
 

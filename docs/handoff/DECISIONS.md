@@ -68,6 +68,7 @@ Detailed upload limits should appear only on failure or help expansion.
 - Use Gemini Developer API.
 - Default model remains `gemini-2.5-flash-lite`.
 - Use `GEMINI_MODEL` env var for override.
+- Optional fallback models can be configured with `GEMINI_FALLBACK_MODELS`, for example `gemini-2.5-flash-lite,gemini-3.1-flash-lite,gemini-3.5-flash,gemini-2.5-flash`.
 - Use `GEMINI_API_KEY` server-side only.
 - Chat should answer in Arabic when Arabic UI is selected or the user writes Arabic.
 

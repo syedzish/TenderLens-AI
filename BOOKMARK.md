@@ -31,6 +31,15 @@
   - [x] Verify tests, build, audit, and Playwright screenshots.
   - [x] Push to GitHub.
   - [ ] Verify Vercel.
+- [x] Phase 3.4: Polish Tender Map, Briefing Deck carousel, PPTX export styling, and fallback documentation.
+  - [x] Update handoff plan and bookmark.
+  - [x] Fix Tender Map SVG overflow and crowded connector labels.
+  - [x] Replace Briefing Deck cards with an on-page slide carousel.
+  - [x] Upgrade PPTX export styling without any extra Gemini call.
+  - [x] Document optional Vercel fallback model env var.
+  - [x] Verify Antigravity job notes and clean up handoff location.
+  - [x] Run tests, build, Playwright screenshots, and secret scan.
+  - [ ] Commit and push updates.
 
 ## Notes
 
@@ -74,6 +83,26 @@
     - Playwright visual script passed and wrote screenshots under `.tmp/screenshots`
     - `rg` secret scan found no API-key-like tokens outside ignored local folders
   - Pushed implementation commit `5ed8cf6` to `origin/main`.
+- Current execution task: implement Phase 3.4 targeted polish.
+  - User requested:
+    - fix Tender Map first-card text overflow
+    - show Briefing Deck as an actual slide-style carousel while keeping PPTX download
+    - explain optional `GEMINI_FALLBACK_MODELS` Vercel env var
+    - verify `antigravity_jobs`
+    - upgrade generated PPTX styling without Gemini calls
+  - Implementation completed locally:
+    - Tender Map SVG now wraps long filenames and removes crowded inline edge labels
+    - Briefing Deck now renders as an on-page slide carousel with arrows and dots
+    - PPTX export styling upgraded with a premium branded slide layout and larger readable type
+    - Optional Gemini fallback model env var documented in `README.md` and decisions
+    - `antigravity_jobs` moved into `docs/handoff/ANTIGRAVITY_JOBS.md`
+    - hardcoded English onboarding sentence moved into bilingual labels
+  - Local verification completed:
+    - `npm test` passed: 9 files / 26 tests
+    - `npm run build` passed
+    - Playwright visual script passed and wrote screenshots under `.tmp/screenshots/phase34`
+    - secret scan found no API-key-like tokens outside ignored local folders
+    - `npm audit --json` reported 0 vulnerabilities
 
 ## Verification Log
 

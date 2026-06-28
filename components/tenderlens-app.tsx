@@ -197,6 +197,7 @@ const labels = {
     onboardingOneBody:
       "TenderLens AI reads tender and proposal files, finds requirements, checks evidence, and highlights risks.",
     onboardingTwo: "Three simple steps",
+    onboardingTwoBody: "Follow these simple steps to analyze your proposals. You can also read the detailed instructions in the user guide.",
     stepUpload: "Upload files or use example files",
     stepWait: "Wait for results",
     stepAsk: "Ask questions about your documents",
@@ -234,6 +235,9 @@ const labels = {
     startFresh: "Start fresh",
     pptx: "PPTX",
     svg: "SVG",
+    previousSlide: "Previous slide",
+    nextDeckSlide: "Next slide",
+    deckSlide: (current: number, total: number) => `Slide ${current} of ${total}`,
     verify: "AI-generated review. Verify before making procurement decisions.",
     uploadLimit: (count: number, size: string) => `Upload up to ${count} files. ${size} per file.`,
     resultTitleStrong: "Strong response with a few checks",
@@ -334,6 +338,7 @@ const labels = {
     onboardingOne: "افهم مستندات المناقصة بسرعة",
     onboardingOneBody: "يقرأ TenderLens AI ملفات المناقصة والعرض، ويجد المتطلبات، ويفحص الأدلة، ويبرز المخاطر.",
     onboardingTwo: "ثلاث خطوات بسيطة",
+    onboardingTwoBody: "اتبع هذه الخطوات البسيطة لتحليل العروض. يمكنك أيضا قراءة التعليمات التفصيلية في دليل الاستخدام.",
     stepUpload: "ارفع الملفات أو استخدم ملفات المثال",
     stepWait: "انتظر النتائج",
     stepAsk: "اسأل عن مستنداتك",
@@ -371,6 +376,9 @@ const labels = {
     startFresh: "بدء جديد",
     pptx: "PPTX",
     svg: "SVG",
+    previousSlide: "الشريحة السابقة",
+    nextDeckSlide: "الشريحة التالية",
+    deckSlide: (current: number, total: number) => `الشريحة ${current} من ${total}`,
     verify: "مراجعة مولدة بالذكاء الاصطناعي. تحقق قبل اتخاذ قرارات الشراء.",
     uploadLimit: (count: number, size: string) => `يمكن رفع ${count} ملفات كحد أقصى. ${size} لكل ملف.`,
     resultTitleStrong: "عرض قوي مع بعض النقاط التي تحتاج مراجعة",
@@ -547,7 +555,19 @@ function escapeSvg(input: string): string {
 }
 
 function wrapSvgText(input: string, maxChars = 24, maxLines = 3): string[] {
-  const words = input.split(/\s+/).filter(Boolean);
+  const words = input
+    .replace(/([._/-])/g, "$1 ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .split(/\s+/)
+    .filter(Boolean)
+    .flatMap((word) => {
+      if (word.length <= maxChars) return [word];
+      const chunks: string[] = [];
+      for (let index = 0; index < word.length; index += maxChars) {
+        chunks.push(word.slice(index, index + maxChars));
+      }
+      return chunks;
+    });
   const lines: string[] = [];
   let line = "";
 
@@ -576,7 +596,7 @@ function buildTenderMapSvg(
   title: string,
   columnTitles: { file: string; requirement: string; evidence: string; outcome: string },
 ): string {
-  const width = 1120;
+  const width = 1240;
   const groups = {
     file: map.nodes.filter((node) => node.kind === "file").slice(0, 4),
     requirement: map.nodes.filter((node) => node.kind === "requirement").slice(0, 6),
@@ -584,12 +604,12 @@ function buildTenderMapSvg(
     outcome: map.nodes.filter((node) => node.kind === "risk" || node.kind === "action").slice(0, 8),
   };
   const maxRows = Math.max(groups.file.length, groups.requirement.length, groups.evidence.length, groups.outcome.length, 3);
-  const height = 160 + maxRows * 118;
+  const height = 176 + maxRows * 126;
   const columns = {
     file: { x: 48, title: columnTitles.file },
-    requirement: { x: 310, title: columnTitles.requirement },
-    evidence: { x: 596, title: columnTitles.evidence },
-    outcome: { x: 850, title: columnTitles.outcome },
+    requirement: { x: 356, title: columnTitles.requirement },
+    evidence: { x: 680, title: columnTitles.evidence },
+    outcome: { x: 982, title: columnTitles.outcome },
   };
   const positions = new Map<string, { x: number; y: number; w: number; h: number }>();
 
@@ -603,23 +623,23 @@ function buildTenderMapSvg(
   }
 
   function renderNode(node: TenderMap["nodes"][number], x: number, y: number) {
-    const w = node.kind === "requirement" || node.kind === "evidence" ? 220 : 190;
-    const h = 72;
+    const w = node.kind === "file" ? 234 : node.kind === "requirement" || node.kind === "evidence" ? 250 : 218;
+    const h = 84;
     positions.set(node.id, { x, y, w, h });
     const colors = color(node);
-    const lines = wrapSvgText(node.label, node.kind === "requirement" || node.kind === "evidence" ? 26 : 22, 3);
+    const lines = wrapSvgText(node.label, node.kind === "file" ? 22 : node.kind === "requirement" || node.kind === "evidence" ? 30 : 24, 3);
     const textLines = lines
-      .map((line, index) => `<text x="${x + 16}" y="${y + 28 + index * 16}" font-size="13" font-family="Arial, sans-serif" fill="${colors.text}">${escapeSvg(line)}</text>`)
+      .map((line, index) => `<text x="${x + 18}" y="${y + 31 + index * 17}" font-size="13" font-family="Arial, sans-serif" fill="${colors.text}">${escapeSvg(line)}</text>`)
       .join("");
 
-    return `<g><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="18" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="1.4"/><circle cx="${x + w - 22}" cy="${y + 20}" r="5" fill="${colors.pill}"/>${textLines}<title>${escapeSvg(node.label)}</title></g>`;
+    return `<g><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="18" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="1.4"/><circle cx="${x + w - 22}" cy="${y + 18}" r="5" fill="${colors.pill}"/>${textLines}<title>${escapeSvg(node.label)}</title></g>`;
   }
 
   const nodes = [
-    ...groups.file.map((node, index) => renderNode(node, columns.file.x, 108 + index * 118)),
-    ...groups.requirement.map((node, index) => renderNode(node, columns.requirement.x, 108 + index * 118)),
-    ...groups.evidence.map((node, index) => renderNode(node, columns.evidence.x, 108 + index * 118)),
-    ...groups.outcome.map((node, index) => renderNode(node, columns.outcome.x, 108 + index * 118)),
+    ...groups.file.map((node, index) => renderNode(node, columns.file.x, 118 + index * 126)),
+    ...groups.requirement.map((node, index) => renderNode(node, columns.requirement.x, 118 + index * 126)),
+    ...groups.evidence.map((node, index) => renderNode(node, columns.evidence.x, 118 + index * 126)),
+    ...groups.outcome.map((node, index) => renderNode(node, columns.outcome.x, 118 + index * 126)),
   ].join("");
 
   const edges = map.edges
@@ -632,15 +652,15 @@ function buildTenderMapSvg(
       const tx = to.x;
       const ty = to.y + to.h / 2;
       const midX = sx + (tx - sx) / 2;
-      return `<path d="M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ty}, ${tx} ${ty}" fill="none" stroke="#7b8a8d" stroke-width="1.4" opacity="0.65" marker-end="url(#arrow)"/><text x="${midX - 28}" y="${(sy + ty) / 2 - 6}" font-size="10" font-family="Arial, sans-serif" fill="#526063">${escapeSvg(edge.label)}</text>`;
+      return `<path d="M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ty}, ${tx} ${ty}" fill="none" stroke="#7b8a8d" stroke-width="1.35" opacity="0.5" marker-end="url(#arrow)"><title>${escapeSvg(edge.label)}</title></path>`;
     })
     .join("");
 
   const headings = Object.values(columns)
-    .map((column) => `<text x="${column.x}" y="82" font-size="12" font-weight="700" font-family="Arial, sans-serif" fill="#526063" letter-spacing="0">${escapeSvg(column.title)}</text>`)
+    .map((column) => `<text x="${column.x}" y="88" font-size="12" font-weight="700" font-family="Arial, sans-serif" fill="#526063" letter-spacing="0">${escapeSvg(column.title)}</text>`)
     .join("");
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeSvg(title)}" style="width:100%;height:auto;display:block"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#7b8a8d"/></marker></defs><rect width="${width}" height="${height}" rx="28" fill="#f5f1e8"/><rect x="24" y="24" width="${width - 48}" height="${height - 48}" rx="24" fill="#fffdf8" stroke="#d7dfda"/><text x="48" y="56" font-size="25" font-weight="700" font-family="Arial, sans-serif" fill="#101214">${escapeSvg(title)}</text>${headings}${edges}${nodes}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeSvg(title)}" style="width:100%;height:auto;display:block"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#7b8a8d"/></marker></defs><rect width="${width}" height="${height}" rx="28" fill="#f5f1e8"/><rect x="24" y="24" width="${width - 48}" height="${height - 48}" rx="24" fill="#fffdf8" stroke="#d7dfda"/><text x="48" y="60" font-size="27" font-weight="700" font-family="Arial, sans-serif" fill="#101214">${escapeSvg(title)}</text>${headings}${edges}${nodes}</svg>`;
 }
 
 export function TenderLensApp() {
@@ -650,6 +670,7 @@ export function TenderLensApp() {
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("analysis");
   const [activeRowIndex, setActiveRowIndex] = useState(0);
+  const [activeDeckSlide, setActiveDeckSlide] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isChatting, setIsChatting] = useState(false);
   const [isExporting, setIsExporting] = useState<null | "txt" | "pdf" | "docx" | "pptx">(null);
@@ -703,6 +724,8 @@ export function TenderLensApp() {
     [tenderMap, text.mapKinds.evidence, text.mapKinds.file, text.mapKinds.requirement, text.mapOutcome, text.mapSvgTitle],
   );
   const briefingDeck = useMemo(() => (currentResult ? buildBriefingDeck(currentResult, language) : []), [currentResult, language]);
+  const activeDeckIndex = briefingDeck.length ? Math.min(activeDeckSlide, briefingDeck.length - 1) : 0;
+  const activeDeck = briefingDeck[activeDeckIndex];
   const clarificationQuestions = useMemo(() => (currentResult ? buildClarificationQuestions(currentResult, language) : []), [currentResult, language]);
   const compliantCount = currentResult?.matrix.filter((row) => row.status === "Compliant").length ?? 0;
   const riskCount = currentResult?.matrix.filter((row) => row.risk !== "Low" || row.status !== "Compliant").length ?? 0;
@@ -725,6 +748,7 @@ export function TenderLensApp() {
     setHasAnalyzed(false);
     setChatMessages([]);
     setActiveRowIndex(0);
+    setActiveDeckSlide(0);
     setError(null);
   }
 
@@ -734,6 +758,7 @@ export function TenderLensApp() {
     setHasAnalyzed(false);
     setChatMessages([]);
     setActiveRowIndex(0);
+    setActiveDeckSlide(0);
     setError(null);
   }
 
@@ -743,6 +768,7 @@ export function TenderLensApp() {
     setHasAnalyzed(false);
     setActiveTab("analysis");
     setActiveRowIndex(0);
+    setActiveDeckSlide(0);
     setError(null);
     setChatInput("");
     setChatMessages([]);
@@ -768,6 +794,7 @@ export function TenderLensApp() {
     setHasAnalyzed(false);
     setChatMessages([]);
     setActiveRowIndex(0);
+    setActiveDeckSlide(0);
     const manifest = validateUploadManifest(
       selected.map((file) => ({
         name: file.name,
@@ -800,6 +827,7 @@ export function TenderLensApp() {
       setHasAnalyzed(true);
       setActiveTab("analysis");
       setActiveRowIndex(0);
+      setActiveDeckSlide(0);
     } catch (analysisError) {
       const message = analysisError instanceof Error ? analysisError.message : "Analysis failed.";
       setError(message);
@@ -820,6 +848,7 @@ export function TenderLensApp() {
       setHasAnalyzed(true);
       setActiveTab("analysis");
       setActiveRowIndex(0);
+      setActiveDeckSlide(0);
       setChatMessages([]);
     } catch (exampleError) {
       const message = exampleError instanceof Error ? exampleError.message : "Example files could not be loaded.";
@@ -992,9 +1021,7 @@ export function TenderLensApp() {
                   <div>
                     <div className="inline-flex rounded-full bg-cobalt/10 px-3 py-1 text-xs font-semibold text-cobalt uppercase tracking-wider">{text.slideCounterTwo}</div>
                     <h2 className="mt-4 text-3xl font-semibold leading-tight text-ink lg:text-4xl">{text.onboardingTwo}</h2>
-                    <p className="mt-3 text-sm leading-6 text-graphite font-normal">
-                      Follow these simple steps to analyze your proposals. You can also read the detailed instructions in the user guide.
-                    </p>
+                    <p className="mt-3 text-sm leading-6 text-graphite font-normal">{text.onboardingTwoBody}</p>
                     <div className="mt-5">
                       <Link href="/how-to-use" className="inline-flex items-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-cobalt shadow-sm transition hover:bg-mist hover:text-[#1d4ed8]">
                         <BookOpen className="h-4 w-4" />
@@ -1587,7 +1614,7 @@ export function TenderLensApp() {
               {tenderMap && tenderMapSvg ? (
                 <>
                   <div className="mt-6 overflow-x-auto rounded-[28px] border border-line bg-paper p-3 shadow-table">
-                    <div className="min-w-[920px]" dangerouslySetInnerHTML={{ __html: tenderMapSvg }} />
+                    <div className="min-w-[1120px]" dangerouslySetInnerHTML={{ __html: tenderMapSvg }} />
                   </div>
                   <div className="mt-4 rounded-2xl border border-line bg-ink p-5 text-white">
                     <div className="flex items-center gap-2 text-sm font-semibold">
@@ -1595,9 +1622,9 @@ export function TenderLensApp() {
                       {text.evidencePath}
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2 text-sm text-white/80">
-                      {tenderMap.edges.slice(0, 10).map((edge, index) => (
-                        <span key={`${edge.from}-${edge.to}-${index}`} className="rounded-full bg-white/10 px-3 py-1">
-                          {edge.label}
+                      {Array.from(new Set(tenderMap.edges.map((edge) => edge.label))).slice(0, 8).map((label) => (
+                        <span key={label} className="rounded-full bg-white/10 px-3 py-1">
+                          {label}
                         </span>
                       ))}
                     </div>
@@ -1626,26 +1653,80 @@ export function TenderLensApp() {
                   {text.pptx}
                 </button>
               </div>
-              {briefingDeck.length ? (
-                <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {briefingDeck.map((slide, index) => (
-                    <article key={slide.title} className="min-h-60 rounded-[24px] border border-line bg-paper p-5 shadow-table">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="text-xs font-semibold uppercase text-teal">
-                          {index + 1} · {slide.eyebrow}
+              {briefingDeck.length && activeDeck ? (
+                <div className="mt-6 overflow-hidden rounded-[32px] border border-ink/15 bg-ink shadow-soft">
+                  <div className="relative min-h-[440px] bg-[linear-gradient(135deg,#111412_0%,#173331_48%,#f5f1e8_48%,#fffdf8_100%)] p-5 text-white sm:p-8 lg:p-10">
+                    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-teal via-amber to-cobalt" />
+                    <div className="relative grid min-h-[360px] gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-stretch">
+                      <div className={`flex min-w-0 flex-col justify-between ${isRtl ? "text-right" : "text-left"}`}>
+                        <div>
+                          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white/80">
+                            <Presentation className="h-4 w-4 text-amber" />
+                            {text.deckSlide(activeDeckIndex + 1, briefingDeck.length)}
+                          </div>
+                          <p className="mt-8 text-sm font-semibold uppercase text-amber">{activeDeck.eyebrow}</p>
+                          <h3 className="mt-3 max-w-xl text-4xl font-semibold leading-[1.05] text-white sm:text-5xl">
+                            {activeDeck.title}
+                          </h3>
                         </div>
-                        <Presentation className="h-4 w-4 text-cobalt" />
+                        <div className={`mt-8 flex items-center gap-3 ${isRtl ? "justify-end" : "justify-start"}`}>
+                          <button
+                            type="button"
+                            onClick={() => setActiveDeckSlide((index) => (index === 0 ? briefingDeck.length - 1 : index - 1))}
+                            className="grid h-11 w-11 place-items-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white/20"
+                            aria-label={text.previousSlide}
+                          >
+                            <ArrowLeft className="h-5 w-5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setActiveDeckSlide((index) => (index + 1) % briefingDeck.length)}
+                            className="grid h-11 w-11 place-items-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white/20"
+                            aria-label={text.nextDeckSlide}
+                          >
+                            <ArrowRight className="h-5 w-5" />
+                          </button>
+                        </div>
                       </div>
-                      <h3 className="mt-4 text-xl font-semibold leading-snug text-ink">{slide.title}</h3>
-                      <ul className="mt-4 grid gap-2 text-sm leading-6 text-graphite">
-                        {slide.bullets.slice(0, 4).map((bullet) => (
-                          <li key={bullet} className="rounded-xl border border-line bg-white p-3">
-                            {bullet}
-                          </li>
-                        ))}
-                      </ul>
-                    </article>
-                  ))}
+                      <div className="relative rounded-[28px] border border-line bg-white/95 p-4 text-ink shadow-[0_20px_60px_rgba(16,18,20,0.18)] sm:p-6">
+                        <div className="flex items-center justify-between gap-4 border-b border-line pb-4">
+                          <div>
+                            <p className="text-xs font-semibold uppercase text-teal">TenderLens AI</p>
+                            <p className="mt-1 text-sm text-graphite">{activeDeck.eyebrow}</p>
+                          </div>
+                          <span className="rounded-full bg-ink px-3 py-1 text-xs font-semibold text-white">
+                            {activeDeckIndex + 1}/{briefingDeck.length}
+                          </span>
+                        </div>
+                        <ul className="mt-5 grid gap-3">
+                          {activeDeck.bullets.slice(0, 5).map((bullet, bulletIndex) => (
+                            <li key={bullet} className="flex gap-3 rounded-2xl border border-line bg-paper p-4 text-sm leading-6 text-graphite">
+                              <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-teal/10 text-xs font-semibold text-teal">
+                                {bulletIndex + 1}
+                              </span>
+                              <span className="min-w-0 break-words">{bullet}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-4 border-t border-white/10 bg-ink px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+                    <div className="flex justify-center gap-2 sm:justify-start">
+                      {briefingDeck.map((slide, index) => (
+                        <button
+                          key={slide.title}
+                          type="button"
+                          onClick={() => setActiveDeckSlide(index)}
+                          className={`h-2.5 rounded-full transition-all ${index === activeDeckIndex ? "w-9 bg-amber" : "w-2.5 bg-white/25 hover:bg-white/50"}`}
+                          aria-label={text.deckSlide(index + 1, briefingDeck.length)}
+                        />
+                      ))}
+                    </div>
+                    <div className="text-center text-sm font-semibold text-white/70 sm:text-right">
+                      {text.deckSlide(activeDeckIndex + 1, briefingDeck.length)}
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="mt-6">

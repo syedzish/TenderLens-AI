@@ -46,6 +46,14 @@ Import this public GitHub repo into Vercel and set:
 - `GEMINI_MODEL=gemini-2.5-flash-lite`
 - Optional: `GEMINI_FALLBACK_MODELS`
 
+Recommended optional fallback value:
+
+```text
+GEMINI_FALLBACK_MODELS=gemini-2.5-flash-lite,gemini-3.1-flash-lite,gemini-3.5-flash,gemini-2.5-flash
+```
+
+Use this if the primary model hits a temporary quota/model error. TenderLens tries `GEMINI_MODEL` first, then each fallback model in order, and only shows the user a retry message if every configured model fails. Add it in **Vercel Project Settings -> Environment Variables**, select Production and Preview, then redeploy.
+
 Every push to `main` redeploys the app.
 
 ## Security Guardrails
