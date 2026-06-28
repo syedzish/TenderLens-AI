@@ -14,12 +14,12 @@
 - [x] Phase 2.8: Publish final app to GitHub for Vercel redeploy.
 - [x] Phase 3.0: Create upgrade handoff files before UI approval images.
 - [x] Phase 3.1: Generate UI/logo/onboarding approval images and stop for user approval.
-- [ ] Phase 3.2: Implement approved TenderLens AI upgrade. IN PROGRESS.
+- [x] Phase 3.2: Implement approved TenderLens AI upgrade.
   - [x] Add tests for new guardrails, derived features, chat validation, exports, and document processing.
   - [x] Add document processing, Gemini chat support, export helpers, and API routes.
   - [x] Add approved logo asset to `public/brand/tenderlens-logo.png`.
   - [x] Finish premium app UI, How to Use page, README cleanup, build fixes, and browser verification.
-  - [ ] Commit, push, and verify Vercel redeploy.
+  - [x] Commit, push, and verify Vercel redeploy.
 
 ## Notes
 
@@ -27,7 +27,7 @@
 - Use `GEMINI_MODEL=gemini-2.5-flash-lite`.
 - Uploaded documents are transient and must not be persisted or logged.
 - Current gate: user approved UI/logo/onboarding assets; coding is allowed.
-- Current task: commit and push approved upgrade, then verify Vercel redeploy.
+- Current task: complete. Next task, if needed, is manual judging QA with the deployed URL and Gemini quota.
 - Active implementation order: tests first, document intake, Gemini chat/export APIs, derived features, premium UI, verification.
 
 ## Verification Log
@@ -64,3 +64,8 @@
     - Analysis, Ask TenderLens, Tender Map, Briefing Deck, Questions to Ask tabs
     - preview-mode notice
   - Public-file secret scan found no pasted API key or Google API-key-like token in commit-bound files.
+  - Committed upgrade as `4103a90` and pushed to `origin/main`.
+  - GitHub commit status reported Vercel success: "Deployment has completed."
+  - Deployed URLs returned HTTP 200:
+    - `https://tender-lens-ai-nine.vercel.app`
+    - `https://tender-lens-ai-nine.vercel.app/how-to-use`
