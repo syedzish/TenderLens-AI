@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeComplianceResult } from "../lib/compliance";
+import { forceNoResponseEvidenceResult, normalizeComplianceResult } from "../lib/compliance";
 
 describe("compliance result normalization", () => {
   it("clamps scores and keeps only usable matrix rows with citations", () => {
@@ -70,5 +70,32 @@ describe("compliance result normalization", () => {
     expect(result.score).toBe(0);
     expect(result.matrix[0].status).toBe("Needs Review");
     expect(result.executiveBrief).toContain("could not produce");
+  });
+
+  it("forces RFP-only analysis to zero instead of treating requirements as response evidence", () => {
+    const result = forceNoResponseEvidenceResult(
+      normalizeComplianceResult({
+        score: 75,
+        executiveBrief: "The response demonstrates a strong understanding of the RFP.",
+        matrix: [
+          {
+            requirement: "Bid security must equal 1.5% of the proposed contract value.",
+            category: "Commercial",
+            status: "Compliant",
+            risk: "Low",
+            response: "Bid security will be provided.",
+            citations: [{ file: "dammam-smart-street-lighting-rfp-test.pdf", quote: "Bid security must equal 1.5%." }],
+          },
+        ],
+        trace: ["Read tender", "Mapped response"],
+      }),
+      "en",
+    );
+
+    expect(result.score).toBe(0);
+    expect(result.matrix[0].status).toBe("Gap");
+    expect(result.matrix[0].risk).toBe("High");
+    expect(result.matrix[0].response).toBe("No vendor proposal or response evidence was provided.");
+    expect(result.executiveBrief).toContain("no vendor proposal or response evidence");
   });
 });

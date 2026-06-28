@@ -240,6 +240,7 @@ const labels = {
     deckSlide: (current: number, total: number) => `Slide ${current} of ${total}`,
     verify: "AI-generated review. Verify before making procurement decisions.",
     uploadLimit: (count: number, size: string) => `Upload up to ${count} files. ${size} per file.`,
+    resultTitleNoEvidence: "Response evidence needed",
     resultTitleStrong: "Strong response with a few checks",
     resultTitleRisk: "Good foundation with risks to resolve",
     compliantRows: (count: number) => `${count} compliant rows`,
@@ -381,6 +382,7 @@ const labels = {
     deckSlide: (current: number, total: number) => `الشريحة ${current} من ${total}`,
     verify: "مراجعة مولدة بالذكاء الاصطناعي. تحقق قبل اتخاذ قرارات الشراء.",
     uploadLimit: (count: number, size: string) => `يمكن رفع ${count} ملفات كحد أقصى. ${size} لكل ملف.`,
+    resultTitleNoEvidence: "تحتاج إلى أدلة استجابة",
     resultTitleStrong: "عرض قوي مع بعض النقاط التي تحتاج مراجعة",
     resultTitleRisk: "أساس جيد مع مخاطر يجب حلها",
     compliantRows: (count: number) => `${count} بنود ممتثلة`,
@@ -1351,7 +1353,7 @@ export function TenderLensApp() {
                     </div>
                   ) : null}
                   <h2 className="mt-4 text-3xl font-semibold leading-tight text-ink">
-                    {currentResult.score >= 80 ? text.resultTitleStrong : text.resultTitleRisk}
+                    {currentResult.score === 0 ? text.resultTitleNoEvidence : currentResult.score >= 80 ? text.resultTitleStrong : text.resultTitleRisk}
                   </h2>
                   <p className="mt-3 max-w-3xl text-base leading-7 text-graphite">{currentResult.executiveBrief}</p>
                 </div>

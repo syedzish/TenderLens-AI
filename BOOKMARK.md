@@ -45,6 +45,12 @@
   - [x] Fix PPTX text overlap and score badge clipping.
   - [x] Generate and inspect a fresh PPTX.
   - [x] Run tests/build and push.
+- [ ] Phase 3.6: Fix inconsistent RFP-only scoring and Gemini service-error 0-score display.
+  - [x] Reproduce with failing tests for RFP-only document handling.
+  - [x] Add deterministic document-role detection.
+  - [x] Force RFP-only uploads to a no-response-evidence result.
+  - [x] Treat malformed Gemini output as transient error instead of rendering fallback 0.
+  - [ ] Verify tests, build, security scan, push, and Vercel.
 
 ## Notes
 
@@ -131,6 +137,25 @@
     - inspected Slide 1, Slide 4, and Slide 5 PNGs; no overlap and score displays correctly
     - secret scan found no API-key-like tokens outside ignored local folders
     - pushed implementation commit `53c5fdc` to `origin/main`
+- Current execution task: implement Phase 3.6 analysis consistency repair.
+  - User reported same `dammam-smart-street-lighting-rfp-test.pdf` scored 75 once and 0 after refresh.
+  - User also observed AI Studio 503 ServiceUnavailable errors and suspected service errors might render 0.
+  - Root cause:
+    - RFP-only uploads were sent directly to Gemini with no deterministic role guard.
+    - Gemini could sometimes treat RFP requirement text as vendor compliance evidence.
+    - Malformed/empty model output could normalize to the generic zero-score fallback instead of throwing a user-visible retry/service error.
+  - Implementation in progress:
+    - added `lib/document-roles.ts`
+    - added `forceNoResponseEvidenceResult` and `isFallbackComplianceResult`
+    - analyze route now marks RFP-only uploads with `responseEvidenceDetected: false` and forces the final result to 0 with clear no-response evidence copy
+    - `analyzeDocuments` now throws a 503-style error for malformed model output, allowing fallback models/retry messaging
+    - UI heading for score 0 now says response evidence is needed
+  - Local verification completed:
+    - focused tests passed: 4 files / 8 tests
+    - `npm test` passed: 12 files / 32 tests
+    - `npm run build` passed
+    - secret scan found no API-key-like tokens outside ignored local folders
+    - `npm audit --json` reported 0 vulnerabilities
 
 ## Verification Log
 

@@ -6,7 +6,7 @@ import {
 } from "@google/genai";
 
 import type { NormalizedChatPayload } from "@/lib/chat";
-import { normalizeComplianceResult, type ComplianceResult } from "@/lib/compliance";
+import { isFallbackComplianceResult, normalizeComplianceResult, type ComplianceResult } from "@/lib/compliance";
 import { prepareDocumentsForGemini, type PreparedUploadFile } from "@/lib/document-processing";
 
 const SYSTEM_INSTRUCTION = `
@@ -146,7 +146,13 @@ export async function analyzeDocuments({
     },
   });
 
-  return normalizeComplianceResult(response.text ?? "");
+  const result = normalizeComplianceResult(response.text ?? "");
+
+  if (isFallbackComplianceResult(result)) {
+    throw Object.assign(new Error("Gemini returned malformed or empty structured output."), { status: 503 });
+  }
+
+  return result;
 }
 
 function buildChatPrompt(payload: NormalizedChatPayload): string {

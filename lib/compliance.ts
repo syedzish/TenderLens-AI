@@ -52,6 +52,53 @@ export const FALLBACK_COMPLIANCE_RESULT: ComplianceResult = {
   nextActions: ["Retry with clear tender and proposal documents."],
 };
 
+export function isFallbackComplianceResult(result: ComplianceResult): boolean {
+  return (
+    result.score === FALLBACK_COMPLIANCE_RESULT.score &&
+    result.matrix.length === FALLBACK_COMPLIANCE_RESULT.matrix.length &&
+    result.matrix[0]?.requirement === FALLBACK_COMPLIANCE_RESULT.matrix[0].requirement &&
+    result.matrix[0]?.response === FALLBACK_COMPLIANCE_RESULT.matrix[0].response
+  );
+}
+
+export function forceNoResponseEvidenceResult(result: ComplianceResult, language: "en" | "ar" = "en"): ComplianceResult {
+  const isArabic = language === "ar";
+  const response = isArabic ? "لم يتم تقديم عرض مورد أو دليل استجابة." : "No vendor proposal or response evidence was provided.";
+
+  return {
+    score: 0,
+    executiveBrief: isArabic
+      ? "تم رفع مستندات متطلبات المناقصة فقط. لا يمكن قياس الامتثال لأن عرض المورد أو أدلة الاستجابة غير موجودة."
+      : "Only tender/RFP requirement documents were uploaded. TenderLens cannot score compliance because no vendor proposal or response evidence was provided.",
+    matrix: result.matrix.map((row) => ({
+      ...row,
+      status: "Gap",
+      risk: "High",
+      response,
+    })),
+    trace: [
+      ...(result.trace.length ? result.trace.slice(0, 3) : ["Validated upload", "Extracted tender obligations"]),
+      isArabic ? "لم يتم العثور على عرض مورد أو دليل استجابة." : "Detected tender/RFP-only upload with no vendor response evidence.",
+    ],
+    risks: [
+      isArabic
+        ? "لا توجد أدلة من المورد لمقارنة المتطلبات بها."
+        : "No vendor response evidence was uploaded for compliance comparison.",
+      isArabic
+        ? "لا يمكن اعتبار متطلبات المناقصة نفسها دليلا على الامتثال."
+        : "Tender/RFP requirement text cannot be used as proof of vendor compliance.",
+    ],
+    nextActions: [
+      isArabic
+        ? "ارفع عرض المورد أو مستند الاستجابة بجانب ملف المناقصة."
+        : "Upload the vendor proposal or response document together with the RFP.",
+      isArabic
+        ? "أعد تشغيل التحليل بعد إضافة أدلة الاستجابة."
+        : "Run the analysis again after adding response evidence.",
+    ],
+  };
+}
+
 function toObject(value: unknown): Record<string, unknown> | null {
   if (typeof value === "string") {
     const trimmed = value.trim();
