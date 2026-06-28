@@ -39,6 +39,7 @@ import { useMemo, useRef, useState } from "react";
 
 import type { AppLanguage, ChatHistoryMessage } from "@/lib/chat";
 import type { ComplianceMatrixRow, ComplianceResult, ComplianceStatus, RiskLevel } from "@/lib/compliance";
+import { getDemoAnalysis, isDemoFileSet } from "@/lib/demo-analysis";
 import { buildBriefingDeck, buildClarificationQuestions, buildTenderMap } from "@/lib/derived-features";
 import {
   MAX_FILE_COUNT,
@@ -50,8 +51,6 @@ import {
 type WorkspaceTab = "analysis" | "ask" | "map" | "deck" | "questions";
 
 type ExampleFile = {
-  label: string;
-  description: string;
   path: string;
   downloadPath: string;
   name: string;
@@ -61,8 +60,6 @@ type ExampleFile = {
 
 const EXAMPLE_FILES: ExampleFile[] = [
   {
-    label: "RFP example",
-    description: "Sample request for proposal document.",
     path: "/demo-docs/riyadh-smart-parking-rfp.pdf",
     downloadPath: "/demo-docs/riyadh-smart-parking-rfp.pdf",
     name: "Riyadh Smart Parking RFP.pdf",
@@ -70,8 +67,6 @@ const EXAMPLE_FILES: ExampleFile[] = [
     format: "PDF",
   },
   {
-    label: "Proposal example",
-    description: "Sample proposal response document.",
     path: "/demo-docs/najm-urban-mobility-proposal.docx",
     downloadPath: "/demo-docs/najm-urban-mobility-proposal.docx",
     name: "Najm Urban Mobility Proposal.docx",
@@ -79,8 +74,6 @@ const EXAMPLE_FILES: ExampleFile[] = [
     format: "DOCX",
   },
   {
-    label: "Technical addendum",
-    description: "Sample technical compliance addendum.",
     path: "/demo-docs/technical-compliance-addendum.pdf",
     downloadPath: "/demo-docs/technical-compliance-addendum.pdf",
     name: "Technical Compliance Addendum.pdf",
@@ -210,9 +203,71 @@ const labels = {
     nextSlide: "Next",
     getStarted: "Get started",
     skip: "Skip",
+    slideOne: "Slide 1",
+    slideTwo: "Slide 2",
+    slideCounterOne: "1 of 2",
+    slideCounterTwo: "2 of 2",
+    onboardingChecks: ["Extract requirements", "Match evidence", "Highlight risks"],
     previewNotice:
       "Preview mode: no files have been analyzed yet. Upload files or run the preloaded example to replace this with real results.",
     verify: "AI-generated review. Verify before making procurement decisions.",
+    uploadLimit: (count: number, size: string) => `Upload up to ${count} files. ${size} per file.`,
+    resultTitleStrong: "Strong response with a few checks",
+    resultTitleRisk: "Good foundation with risks to resolve",
+    compliantRows: (count: number) => `${count} compliant rows`,
+    riskRows: (count: number) => `${count} items need attention`,
+    checklistDesc: "Every row links a requirement to evidence and risk.",
+    evidenceDesc: "Selected evidence for the active requirement.",
+    attentionDesc: "Risks that may need clarification.",
+    noMajorRisks: "No major risks listed.",
+    askDesc: "Ask follow-up questions about the documents, evidence, risks, and next steps.",
+    chatIntro: "Ask me about the biggest risks, why a requirement is partial, or what you should ask the vendor next.",
+    thinking: "TenderLens is checking the evidence...",
+    quickQuestions: [
+      "What are the biggest risks?",
+      "Why is this partial?",
+      "What should I ask the vendor?",
+      "Summarize this in Arabic",
+    ],
+    mapDesc: "A simple view of how files, requirements, evidence, risks, and actions connect.",
+    mapKinds: {
+      file: "Files",
+      requirement: "Requirements",
+      risk: "Risks",
+      evidence: "Evidence",
+      action: "Actions",
+    },
+    evidencePath: "Evidence path",
+    deckDesc: "A lightweight stakeholder briefing created from the analysis result.",
+    questionsDesc: "Practical questions to send to the vendor or project owner before submission.",
+    removeFile: "Remove file",
+    sendMessage: "Send message",
+    mapSvgTitle: "TenderLens AI Tender Map",
+    exampleFiles: [
+      {
+        label: "RFP example",
+        description: "The fictional tender document TenderLens uses to find requirements.",
+      },
+      {
+        label: "Proposal example",
+        description: "A fictional vendor response used to check compliance.",
+      },
+      {
+        label: "Technical addendum",
+        description: "Extra technical evidence for language support, hosting, uptime, and security.",
+      },
+    ],
+    statuses: {
+      Compliant: "Compliant",
+      Partial: "Partial",
+      Gap: "Gap",
+      "Needs Review": "Needs Review",
+    },
+    risks: {
+      Low: "Low",
+      Medium: "Medium",
+      High: "High",
+    },
   },
   ar: {
     appSubtitle: "مساحة مراجعة المناقصات بالذكاء الاصطناعي",
@@ -261,8 +316,65 @@ const labels = {
     nextSlide: "التالي",
     getStarted: "ابدأ",
     skip: "تخطي",
+    slideOne: "الشريحة 1",
+    slideTwo: "الشريحة 2",
+    slideCounterOne: "1 من 2",
+    slideCounterTwo: "2 من 2",
+    onboardingChecks: ["استخراج المتطلبات", "مطابقة الأدلة", "إبراز المخاطر"],
     previewNotice: "وضع المعاينة: لم يتم تحليل ملفات بعد. ارفع ملفاتك أو حلل الملفات الجاهزة لاستبدال هذه النتائج بنتائج حقيقية.",
     verify: "مراجعة مولدة بالذكاء الاصطناعي. تحقق قبل اتخاذ قرارات الشراء.",
+    uploadLimit: (count: number, size: string) => `يمكن رفع ${count} ملفات كحد أقصى. ${size} لكل ملف.`,
+    resultTitleStrong: "عرض قوي مع بعض النقاط التي تحتاج مراجعة",
+    resultTitleRisk: "أساس جيد مع مخاطر يجب حلها",
+    compliantRows: (count: number) => `${count} بنود ممتثلة`,
+    riskRows: (count: number) => `${count} بنود تحتاج انتباها`,
+    checklistDesc: "كل صف يربط المتطلب بالدليل ومستوى المخاطر.",
+    evidenceDesc: "الدليل المختار للمتطلب النشط.",
+    attentionDesc: "مخاطر قد تحتاج إلى توضيح.",
+    noMajorRisks: "لا توجد مخاطر رئيسية مدرجة.",
+    askDesc: "اسأل أسئلة متابعة عن المستندات والأدلة والمخاطر والخطوات التالية.",
+    chatIntro: "اسألني عن أكبر المخاطر، أو سبب اعتبار متطلب ما جزئيا، أو ما الذي يجب سؤاله للمورد.",
+    thinking: "يقوم TenderLens بمراجعة الأدلة...",
+    quickQuestions: ["ما أكبر المخاطر؟", "لماذا هذا البند جزئي؟", "ما الذي يجب أن أسأله للمورد؟", "لخص النتائج بالعربية"],
+    mapDesc: "عرض بسيط يوضح ارتباط الملفات والمتطلبات والأدلة والمخاطر والإجراءات.",
+    mapKinds: {
+      file: "الملفات",
+      requirement: "المتطلبات",
+      risk: "المخاطر",
+      evidence: "الأدلة",
+      action: "الإجراءات",
+    },
+    evidencePath: "مسار الأدلة",
+    deckDesc: "ملخص خفيف لأصحاب المصلحة يتم إنشاؤه من نتيجة التحليل.",
+    questionsDesc: "أسئلة عملية لإرسالها إلى المورد أو مالك المشروع قبل التقديم.",
+    removeFile: "إزالة الملف",
+    sendMessage: "إرسال الرسالة",
+    mapSvgTitle: "خريطة المناقصة من TenderLens AI",
+    exampleFiles: [
+      {
+        label: "مثال طلب تقديم عروض",
+        description: "ملف مناقصة خيالي يستخدمه TenderLens لاستخراج المتطلبات.",
+      },
+      {
+        label: "مثال عرض المورد",
+        description: "رد مورد خيالي يستخدم لفحص الامتثال.",
+      },
+      {
+        label: "ملحق الامتثال الفني",
+        description: "أدلة فنية إضافية عن اللغة والاستضافة والتوافر والأمن.",
+      },
+    ],
+    statuses: {
+      Compliant: "ممتثل",
+      Partial: "جزئي",
+      Gap: "فجوة",
+      "Needs Review": "يحتاج مراجعة",
+    },
+    risks: {
+      Low: "منخفض",
+      Medium: "متوسط",
+      High: "عال",
+    },
   },
 } as const;
 
@@ -352,7 +464,7 @@ function SectionHeader({
 export function TenderLensApp() {
   const [language, setLanguage] = useState<AppLanguage>("en");
   const [files, setFiles] = useState<File[]>([]);
-  const [result, setResult] = useState<ComplianceResult | null>(SAMPLE_RESULT);
+  const [result, setResult] = useState<ComplianceResult | null>(null);
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("analysis");
   const [activeRowIndex, setActiveRowIndex] = useState(0);
@@ -364,19 +476,14 @@ export function TenderLensApp() {
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [onboardingSlide, setOnboardingSlide] = useState<0 | 1>(0);
   const [chatInput, setChatInput] = useState("");
-  const [chatMessages, setChatMessages] = useState<ChatHistoryMessage[]>([
-    {
-      role: "assistant",
-      content:
-        "Ask me about the biggest risks, why a requirement is partial, or what you should ask the vendor next.",
-    },
-  ]);
+  const [chatMessages, setChatMessages] = useState<ChatHistoryMessage[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const addMoreInputRef = useRef<HTMLInputElement>(null);
 
   const text = labels[language];
   const isRtl = language === "ar";
-  const currentResult = result ?? SAMPLE_RESULT;
+  const isExampleSelection = isDemoFileSet(files.map((file) => file.name));
+  const currentResult = hasAnalyzed && isExampleSelection ? getDemoAnalysis(language) : result ?? getDemoAnalysis(language);
   const activeRow = currentResult.matrix[Math.min(activeRowIndex, currentResult.matrix.length - 1)];
   const validation = useMemo(
     () =>
@@ -390,13 +497,24 @@ export function TenderLensApp() {
     [files],
   );
   const tenderMap = useMemo(
-    () => buildTenderMap(currentResult, files.length ? files.map((file) => file.name) : EXAMPLE_FILES.map((file) => file.name)),
-    [currentResult, files],
+    () => buildTenderMap(currentResult, files.length ? files.map((file) => file.name) : EXAMPLE_FILES.map((file) => file.name), language),
+    [currentResult, files, language],
   );
-  const briefingDeck = useMemo(() => buildBriefingDeck(currentResult), [currentResult]);
-  const clarificationQuestions = useMemo(() => buildClarificationQuestions(currentResult), [currentResult]);
+  const briefingDeck = useMemo(() => buildBriefingDeck(currentResult, language), [currentResult, language]);
+  const clarificationQuestions = useMemo(() => buildClarificationQuestions(currentResult, language), [currentResult, language]);
   const compliantCount = currentResult.matrix.filter((row) => row.status === "Compliant").length;
   const riskCount = currentResult.matrix.filter((row) => row.risk !== "Low" || row.status !== "Compliant").length;
+  const visibleMessages: ChatHistoryMessage[] = chatMessages.length
+    ? chatMessages
+    : [{ role: "assistant", content: text.chatIntro }];
+
+  function statusLabel(status: ComplianceStatus): string {
+    return text.statuses[status];
+  }
+
+  function riskLabel(risk: RiskLevel): string {
+    return text.risks[risk];
+  }
 
   function mergeFiles(nextFiles: File[]) {
     const merged = [...files, ...nextFiles].slice(0, MAX_FILE_COUNT);
@@ -461,19 +579,29 @@ export function TenderLensApp() {
   }
 
   async function runExampleAnalysis() {
+    setError(null);
+    setIsAnalyzing(true);
+
     try {
       const loaded = await loadExampleFiles();
       setShowExamples(false);
-      await runAnalysis(loaded);
+      setFiles(loaded);
+      setResult(getDemoAnalysis(language));
+      setHasAnalyzed(true);
+      setActiveTab("analysis");
+      setActiveRowIndex(0);
+      setChatMessages([]);
     } catch (exampleError) {
       const message = exampleError instanceof Error ? exampleError.message : "Example files could not be loaded.";
       setError(message);
+    } finally {
+      setIsAnalyzing(false);
     }
   }
 
   async function sendChatMessage(question?: string) {
     const message = (question ?? chatInput).trim();
-    if (!message || !result) return;
+    if (!message || !hasAnalyzed) return;
 
     const nextMessages: ChatHistoryMessage[] = [...chatMessages, { role: "user", content: message }];
     setChatMessages(nextMessages);
@@ -486,7 +614,7 @@ export function TenderLensApp() {
       body.append("message", message);
       body.append("language", language);
       body.append("history", JSON.stringify(chatMessages.slice(-6)));
-      body.append("analysis", JSON.stringify(result));
+      body.append("analysis", JSON.stringify(currentResult));
       files.forEach((file) => body.append("files", file));
 
       const response = await fetch("/api/chat", { method: "POST", body });
@@ -506,7 +634,7 @@ export function TenderLensApp() {
   }
 
   async function downloadReport(format: "txt" | "pdf" | "docx") {
-    if (!result) return;
+    if (!hasAnalyzed) return;
     setIsExporting(format);
 
     try {
@@ -515,7 +643,7 @@ export function TenderLensApp() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           format,
-          result,
+          result: currentResult,
           files: files.map((file) => file.name),
           language,
         }),
@@ -554,7 +682,7 @@ export function TenderLensApp() {
           .slice(0, 26)}</text></g>`;
       })
       .join("");
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560"><rect width="980" height="560" fill="#faf7ef"/><text x="48" y="42" font-size="24" font-family="Arial" fill="#101214">TenderLens AI Tender Map</text>${rows}</svg>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560"><rect width="980" height="560" fill="#faf7ef"/><text x="48" y="42" font-size="24" font-family="Arial" fill="#101214">${text.mapSvgTitle}</text>${rows}</svg>`;
     const blob = new Blob([svg], { type: "image/svg+xml" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
@@ -573,7 +701,7 @@ export function TenderLensApp() {
   ];
 
   return (
-    <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen bg-paper text-ink">
+    <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen overflow-x-hidden bg-paper text-ink">
       <input
         ref={fileInputRef}
         className="sr-only"
@@ -619,25 +747,25 @@ export function TenderLensApp() {
             <div className="p-6 lg:p-8">
               {onboardingSlide === 0 ? (
               <div className="rounded-2xl border border-line bg-white p-6 ring-2 ring-teal/30">
-                <div className="inline-flex rounded-full bg-teal/10 px-3 py-1 text-sm font-semibold text-teal">1 of 2</div>
+                <div className="inline-flex rounded-full bg-teal/10 px-3 py-1 text-sm font-semibold text-teal">{text.slideCounterOne}</div>
                 <h2 className="mt-5 max-w-md text-3xl font-semibold leading-tight text-ink">{text.onboardingOne}</h2>
                 <p className="mt-4 max-w-lg text-base leading-7 text-graphite">{text.onboardingOneBody}</p>
                 <div className="mt-8 grid gap-3 rounded-2xl bg-mist p-4 sm:grid-cols-3">
                   {[
-                    ["Extract requirements", SearchCheck],
-                    ["Match evidence", ShieldCheck],
-                    ["Highlight risks", AlertTriangle],
-                  ].map(([item, Icon]) => (
-                    <div key={item as string} className="rounded-xl bg-white p-4 text-sm font-semibold text-ink">
+                    { label: text.onboardingChecks[0], icon: SearchCheck },
+                    { label: text.onboardingChecks[1], icon: ShieldCheck },
+                    { label: text.onboardingChecks[2], icon: AlertTriangle },
+                  ].map(({ label, icon: Icon }) => (
+                    <div key={label} className="rounded-xl bg-white p-4 text-sm font-semibold text-ink">
                       <Icon className="mb-3 h-5 w-5 text-teal" />
-                      {item as string}
+                      {label}
                     </div>
                   ))}
                 </div>
               </div>
               ) : (
               <div className="rounded-2xl border border-line bg-white p-6 ring-2 ring-teal/30">
-                <div className="inline-flex rounded-full bg-cobalt/10 px-3 py-1 text-sm font-semibold text-cobalt">2 of 2</div>
+                <div className="inline-flex rounded-full bg-cobalt/10 px-3 py-1 text-sm font-semibold text-cobalt">{text.slideCounterTwo}</div>
                 <h2 className="mt-5 text-3xl font-semibold leading-tight text-ink">{text.onboardingTwo}</h2>
                 <div className="mt-6 grid gap-3">
                   {[text.stepUpload, text.stepWait, text.stepAsk, text.stepDownload].map((step, index) => (
@@ -658,8 +786,8 @@ export function TenderLensApp() {
             </div>
             <div className="flex items-center justify-between border-t border-line px-6 py-5">
               <div className="flex gap-2">
-                <button type="button" onClick={() => setOnboardingSlide(0)} className={`h-2.5 w-8 rounded-full ${onboardingSlide === 0 ? "bg-teal" : "bg-line"}`} aria-label="Slide 1" />
-                <button type="button" onClick={() => setOnboardingSlide(1)} className={`h-2.5 w-8 rounded-full ${onboardingSlide === 1 ? "bg-teal" : "bg-line"}`} aria-label="Slide 2" />
+                <button type="button" onClick={() => setOnboardingSlide(0)} className={`h-2.5 w-8 rounded-full ${onboardingSlide === 0 ? "bg-teal" : "bg-line"}`} aria-label={text.slideOne} />
+                <button type="button" onClick={() => setOnboardingSlide(1)} className={`h-2.5 w-8 rounded-full ${onboardingSlide === 1 ? "bg-teal" : "bg-line"}`} aria-label={text.slideTwo} />
               </div>
               <div className="flex items-center gap-3">
                 <button type="button" onClick={() => setShowOnboarding(false)} className="h-11 rounded-xl border border-line bg-white px-5 font-semibold text-graphite">
@@ -700,15 +828,15 @@ export function TenderLensApp() {
               </button>
             </div>
             <div className="mt-5 grid gap-3">
-              {EXAMPLE_FILES.map((file) => (
+              {EXAMPLE_FILES.map((file, index) => (
                 <div key={file.name} className="flex flex-col gap-3 rounded-xl border border-line bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
                     <div className="grid h-12 w-12 place-items-center rounded-xl bg-teal/10 text-teal">
                       <FileCheck2 className="h-6 w-6" />
                     </div>
                     <div>
-                      <div className="font-semibold text-ink">{file.label}</div>
-                      <div className="text-sm text-graphite">{file.description}</div>
+                      <div className="font-semibold text-ink">{text.exampleFiles[index].label}</div>
+                      <div className="text-sm text-graphite">{text.exampleFiles[index].description}</div>
                     </div>
                   </div>
                   <a href={file.downloadPath} className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-line bg-paper px-3 text-sm font-semibold text-ink">
@@ -760,7 +888,7 @@ export function TenderLensApp() {
                   key={format}
                   type="button"
                   onClick={() => void downloadReport(format)}
-                  disabled={!result || Boolean(isExporting)}
+                  disabled={!hasAnalyzed || Boolean(isExporting)}
                   className="inline-flex min-w-14 items-center justify-center gap-2 border-r border-line px-3 text-sm font-semibold text-ink last:border-r-0 hover:bg-mist disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isExporting === format ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowDownToLine className="h-4 w-4 text-teal" />}
@@ -772,8 +900,8 @@ export function TenderLensApp() {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-[1560px] gap-4 px-4 py-5 sm:px-6 lg:grid-cols-[360px_minmax(0,1fr)] lg:px-8">
-        <aside className="grid gap-4 self-start">
+      <div className="mx-auto grid max-w-[1700px] items-start gap-5 px-4 py-5 sm:px-6 xl:grid-cols-[380px_minmax(0,1fr)] lg:px-8">
+        <aside className="grid min-w-0 gap-4 self-start">
           <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
             <SectionHeader icon={UploadCloud} title={text.uploadTitle} description={text.uploadHelp} />
             <div className="mt-5 grid gap-3">
@@ -795,7 +923,7 @@ export function TenderLensApp() {
                 type="button"
                 onClick={runExampleAnalysis}
                 disabled={isAnalyzing}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-cobalt/30 bg-cobalt/5 px-4 font-semibold text-cobalt transition hover:bg-cobalt/10 disabled:opacity-60"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-cobalt/30 bg-cobalt/5 px-4 text-center font-semibold leading-snug text-cobalt transition hover:bg-cobalt/10 disabled:opacity-60"
               >
                 {isAnalyzing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Files className="h-5 w-5" />}
                 {text.runExample}
@@ -816,7 +944,7 @@ export function TenderLensApp() {
               <SectionHeader
                 icon={FileCheck2}
                 title={text.analyzedFiles}
-                description={`Upload up to ${MAX_FILE_COUNT} files. ${formatBytes(MAX_FILE_SIZE_BYTES)} per file.`}
+                description={text.uploadLimit(MAX_FILE_COUNT, formatBytes(MAX_FILE_SIZE_BYTES))}
               />
               <button
                 type="button"
@@ -850,7 +978,7 @@ export function TenderLensApp() {
                         type="button"
                         onClick={() => setFiles(files.filter((item) => item !== file))}
                         className="grid h-9 w-9 place-items-center rounded-full text-graphite hover:bg-white"
-                        aria-label="Remove file"
+                        aria-label={text.removeFile}
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -869,9 +997,9 @@ export function TenderLensApp() {
           </section>
         </aside>
 
-        <section className="grid min-w-0 gap-4">
+        <section className="grid min-w-0 gap-4 overflow-hidden">
           {error ? (
-            <div className="rounded-2xl border border-danger/20 bg-danger/10 p-4 text-sm font-semibold text-danger" role="alert">
+            <div className="rounded-2xl border border-danger/20 bg-danger/10 p-4 text-sm font-semibold leading-6 text-danger" role="alert" aria-live="polite">
               {error}
             </div>
           ) : null}
@@ -889,7 +1017,7 @@ export function TenderLensApp() {
                   {text.overall}
                 </div>
                 <h2 className="mt-4 text-3xl font-semibold leading-tight text-ink">
-                  {currentResult.score >= 80 ? "Strong response with a few checks" : "Good foundation with risks to resolve"}
+                  {currentResult.score >= 80 ? text.resultTitleStrong : text.resultTitleRisk}
                 </h2>
                 <p className="mt-3 max-w-3xl text-base leading-7 text-graphite">{currentResult.executiveBrief}</p>
               </div>
@@ -898,11 +1026,11 @@ export function TenderLensApp() {
                 <div className="grid gap-3 text-sm">
                   <div className="flex items-center gap-2 font-semibold text-teal">
                     <CheckCircle2 className="h-4 w-4" />
-                    {compliantCount} compliant rows
+                    {text.compliantRows(compliantCount)}
                   </div>
                   <div className="flex items-center gap-2 font-semibold text-amber">
                     <AlertTriangle className="h-4 w-4" />
-                    {riskCount} items need attention
+                    {text.riskRows(riskCount)}
                   </div>
                   <p className="text-xs leading-5 text-graphite">{text.verify}</p>
                 </div>
@@ -933,7 +1061,7 @@ export function TenderLensApp() {
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
               <section className="overflow-hidden rounded-2xl border border-line bg-white shadow-table">
                 <div className="border-b border-line bg-paper px-5 py-4">
-                  <SectionHeader icon={ClipboardCheck} title={text.checklist} description="Every row links a requirement to evidence and risk." />
+                  <SectionHeader icon={ClipboardCheck} title={text.checklist} description={text.checklistDesc} />
                 </div>
                 <div className="divide-y divide-line">
                   {currentResult.matrix.map((row, index) => (
@@ -951,9 +1079,9 @@ export function TenderLensApp() {
                       </span>
                       <span className={`inline-flex h-fit w-fit items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold ${statusStyles[row.status]}`}>
                         <StatusIcon status={row.status} />
-                        {row.status}
+                        {statusLabel(row.status)}
                       </span>
-                      <span className={`text-sm font-semibold ${riskStyles[row.risk]}`}>{row.risk}</span>
+                      <span className={`text-sm font-semibold ${riskStyles[row.risk]}`}>{riskLabel(row.risk)}</span>
                       <span className="text-sm leading-6 text-graphite">{row.response}</span>
                     </button>
                   ))}
@@ -962,7 +1090,7 @@ export function TenderLensApp() {
 
               <aside className="grid gap-4 self-start">
                 <section className="rounded-2xl border border-line bg-white p-5 shadow-table">
-                  <SectionHeader icon={FileText} title={text.evidence} description="Selected evidence for the active requirement." />
+                  <SectionHeader icon={FileText} title={text.evidence} description={text.evidenceDesc} />
                   <div className="mt-4 grid gap-3">
                     {activeRow.citations.map((citation, index) => (
                       <figure key={`${citation.file}-${index}`} className="rounded-xl border border-line bg-paper p-4">
@@ -976,9 +1104,9 @@ export function TenderLensApp() {
                 </section>
 
                 <section className="rounded-2xl border border-line bg-white p-5 shadow-table">
-                  <SectionHeader icon={AlertTriangle} title={text.attention} description="Risks that may need clarification." />
+                  <SectionHeader icon={AlertTriangle} title={text.attention} description={text.attentionDesc} />
                   <ul className="mt-4 grid gap-2 text-sm leading-6 text-graphite">
-                    {(currentResult.risks.length ? currentResult.risks : ["No major risks listed."]).map((risk) => (
+                    {(currentResult.risks.length ? currentResult.risks : [text.noMajorRisks]).map((risk) => (
                       <li key={risk} className="rounded-xl bg-amber/10 p-3 text-amber">
                         {risk}
                       </li>
@@ -1005,11 +1133,11 @@ export function TenderLensApp() {
 
           {activeTab === "ask" ? (
             <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
-              <SectionHeader icon={MessageCircle} title={text.ask} description="Ask follow-up questions about the documents, evidence, risks, and next steps." />
-              {!result ? <div className="mt-4 rounded-xl border border-line bg-paper p-4 text-sm text-graphite">{text.noResult}</div> : null}
+              <SectionHeader icon={MessageCircle} title={text.ask} description={text.askDesc} />
+              {!hasAnalyzed ? <div className="mt-4 rounded-xl border border-line bg-paper p-4 text-sm text-graphite">{text.noResult}</div> : null}
               <div className="mt-5 grid min-h-[460px] grid-rows-[1fr_auto] rounded-2xl border border-line bg-paper">
                 <div className="grid content-start gap-3 overflow-y-auto p-4">
-                  {chatMessages.map((message, index) => (
+                  {visibleMessages.map((message, index) => (
                     <div key={`${message.role}-${index}`} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
                       <div
                         className={`max-w-[780px] rounded-2xl px-4 py-3 text-sm leading-6 ${
@@ -1023,23 +1151,18 @@ export function TenderLensApp() {
                   {isChatting ? (
                     <div className="inline-flex items-center gap-2 rounded-2xl border border-line bg-white px-4 py-3 text-sm text-graphite">
                       <Loader2 className="h-4 w-4 animate-spin text-teal" />
-                      TenderLens is checking the evidence...
+                      {text.thinking}
                     </div>
                   ) : null}
                 </div>
                 <div className="border-t border-line p-4">
                   <div className="mb-3 flex flex-wrap gap-2">
-                    {[
-                      "What are the biggest risks?",
-                      "Why is this partial?",
-                      "What should I ask the vendor?",
-                      "Summarize this in Arabic",
-                    ].map((question) => (
+                    {text.quickQuestions.map((question) => (
                       <button
                         key={question}
                         type="button"
                         onClick={() => void sendChatMessage(question)}
-                        disabled={!result || isChatting}
+                        disabled={!hasAnalyzed || isChatting}
                         className="rounded-full border border-line bg-white px-3 py-1.5 text-xs font-semibold text-graphite hover:border-cobalt hover:text-cobalt disabled:opacity-50"
                       >
                         {question}
@@ -1057,14 +1180,14 @@ export function TenderLensApp() {
                       value={chatInput}
                       onChange={(event) => setChatInput(event.target.value)}
                       placeholder={text.askPlaceholder}
-                      disabled={!result || isChatting}
+                      disabled={!hasAnalyzed || isChatting}
                       className="min-h-12 flex-1 rounded-xl border border-line bg-white px-4 text-sm outline-none transition focus:border-teal focus:ring-4 focus:ring-teal/10 disabled:opacity-60"
                     />
                     <button
                       type="submit"
-                      disabled={!result || !chatInput.trim() || isChatting}
+                      disabled={!hasAnalyzed || !chatInput.trim() || isChatting}
                       className="grid h-12 w-12 place-items-center rounded-xl bg-teal text-white shadow-table disabled:cursor-not-allowed disabled:opacity-50"
-                      aria-label="Send message"
+                      aria-label={text.sendMessage}
                     >
                       <Send className="h-5 w-5" />
                     </button>
@@ -1077,7 +1200,7 @@ export function TenderLensApp() {
           {activeTab === "map" ? (
             <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <SectionHeader icon={GitBranch} title={text.map} description="A simple view of how files, requirements, evidence, risks, and actions connect." />
+                <SectionHeader icon={GitBranch} title={text.map} description={text.mapDesc} />
                 <button type="button" onClick={downloadTenderMap} className="inline-flex h-11 items-center gap-2 rounded-xl border border-line bg-paper px-4 text-sm font-semibold text-ink">
                   <Download className="h-4 w-4 text-teal" />
                   SVG
@@ -1086,7 +1209,7 @@ export function TenderLensApp() {
               <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_1fr_1fr]">
                 {(["file", "requirement", "risk", "action"] as const).map((kind) => (
                   <div key={kind} className="rounded-2xl border border-line bg-paper p-4">
-                    <h3 className="font-semibold capitalize text-ink">{kind}</h3>
+                    <h3 className="font-semibold text-ink">{text.mapKinds[kind]}</h3>
                     <div className="mt-3 grid gap-2">
                       {tenderMap.nodes
                         .filter((node) => node.kind === kind)
@@ -1103,7 +1226,7 @@ export function TenderLensApp() {
               <div className="mt-4 rounded-2xl border border-line bg-ink p-5 text-white">
                 <div className="flex items-center gap-2 text-sm font-semibold">
                   <Layers3 className="h-4 w-4 text-amber" />
-                  Evidence path
+                  {text.evidencePath}
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2 text-sm text-white/80">
                   {tenderMap.edges.slice(0, 10).map((edge, index) => (
@@ -1119,7 +1242,7 @@ export function TenderLensApp() {
           {activeTab === "deck" ? (
             <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <SectionHeader icon={Presentation} title={text.deck} description="A lightweight stakeholder briefing created from the analysis result." />
+                <SectionHeader icon={Presentation} title={text.deck} description={text.deckDesc} />
                 <button type="button" onClick={() => void downloadReport("pdf")} className="inline-flex h-11 items-center gap-2 rounded-xl border border-line bg-paper px-4 text-sm font-semibold text-ink">
                   <Download className="h-4 w-4 text-teal" />
                   PDF
@@ -1147,7 +1270,7 @@ export function TenderLensApp() {
 
           {activeTab === "questions" ? (
             <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
-              <SectionHeader icon={CircleHelp} title={text.questions} description="Practical questions to send to the vendor or project owner before submission." />
+              <SectionHeader icon={CircleHelp} title={text.questions} description={text.questionsDesc} />
               <div className="mt-6 grid gap-3">
                 {clarificationQuestions.map((item, index) => (
                   <article key={`${item.question}-${index}`} className="rounded-2xl border border-line bg-paper p-4">

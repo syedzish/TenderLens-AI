@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { getDemoAnalysis, isDemoFileSet } from "@/lib/demo-analysis";
 import { analyzeDocuments } from "@/lib/gemini";
 import { checkCooldown, getClientKey } from "@/lib/rate-limit";
 import { validateUploadContent, validateUploadManifest } from "@/lib/security";
@@ -91,6 +92,21 @@ export async function POST(request: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown Gemini error";
     console.error("TenderLens analysis failed:", message);
+
+    if (isDemoFileSet(manifest.files.map((file) => file.safeName))) {
+      return NextResponse.json({
+        result: getDemoAnalysis(language),
+        meta: {
+          model,
+          fallback: "verified-example-analysis",
+          files: manifest.files.map((file) => ({
+            name: file.safeName,
+            size: file.size,
+            type: file.extension,
+          })),
+        },
+      });
+    }
 
     return NextResponse.json(
       {

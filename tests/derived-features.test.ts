@@ -58,4 +58,14 @@ describe("derived review features", () => {
     expect(questions[0].question).toContain("bid security");
     expect(questions[0].why).toContain("Partial");
   });
+
+  it("localizes generated map, deck, and clarification helpers for Arabic", () => {
+    const map = buildTenderMap(result, ["Proposal.pdf"], "ar");
+    const deck = buildBriefingDeck(result, "ar");
+    const questions = buildClarificationQuestions(result, "ar");
+
+    expect(map.edges.some((edge) => edge.label === "يستشهد")).toBe(true);
+    expect(deck[0].title).toBe("النتيجة العامة");
+    expect(questions[0].question).toContain("يرجى توضيح");
+  });
 });

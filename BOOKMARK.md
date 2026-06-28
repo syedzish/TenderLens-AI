@@ -30,6 +30,12 @@
 - Current task: complete. Next task, if needed, is manual judging QA with the deployed URL and Gemini quota.
 - Active implementation order: tests first, document intake, Gemini chat/export APIs, derived features, premium UI, verification.
 - Latest task: verified analysis accuracy and security hygiene; added risk calibration and server-side upload signature checks.
+- Current repair task: fix preloaded-analysis failure, responsive dashboard disturbance, and Arabic UI copy leaks; verify with tests, production build, and Playwright screenshots before pushing.
+  - Root cause found: demo fallback sorted uploaded filenames but compared against an unsorted expected list, so fallback did not trigger reliably.
+  - Product fix: preloaded example analysis now uses verified local demo analysis directly instead of spending Gemini quota or depending on model availability.
+  - UI fix: dashboard grid now uses a fixed 380px left rail with `minmax(0,1fr)` main content and hidden horizontal overflow.
+  - Arabic fix: onboarding checks, example-file modal text, generated Tender Map/Briefing Deck/Questions labels, status labels, risk labels, and demo analysis are language-aware.
+  - Local verification: `npm test` passed with 8 files / 21 tests; `npm run build` passed with `/`, `/how-to-use`, `/api/analyze`, `/api/chat`, and `/api/export`.
 
 ## Verification Log
 
