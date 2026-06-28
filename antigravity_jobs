@@ -10,4 +10,5 @@ COMPLETED JOBS:
 2. Refactored homepage start card layout to include a custom generated dashboard analysis illustration on the right side, balancing the desktop view and eliminating the empty vertical space, while preserving the full detailed statement.
 3. Redesigned the welcome onboarding popup screens to use premium split layouts, timeline connectors, format-specific step colors, hover micro-movements, and tactile active-scale button presses.
 4. Implemented distinct premium icon colors on homepage components (all unique icons have custom palettes).
-5. Verified build output and pushed updates to GitHub repository.
+5. Updated the English and Arabic onboarding statements to mention that the preloaded files option is used to save Gemini API quota and display an example use case.
+6. Verified build output and pushed updates to GitHub repository.
