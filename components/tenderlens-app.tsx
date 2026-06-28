@@ -453,7 +453,7 @@ function SectionHeader({
       <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal/10 text-teal">
         <Icon className="h-5 w-5" />
       </div>
-      <div>
+      <div className="min-w-0">
         <h2 className="text-lg font-semibold text-ink">{title}</h2>
         {description ? <p className="mt-1 text-sm leading-6 text-graphite">{description}</p> : null}
       </div>
@@ -900,19 +900,19 @@ export function TenderLensApp() {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-[1700px] items-start gap-5 px-4 py-5 sm:px-6 xl:grid-cols-[380px_minmax(0,1fr)] lg:px-8">
-        <aside className="grid min-w-0 gap-4 self-start">
-          <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
+      <div className="mx-auto grid max-w-[1700px] items-start gap-5 px-4 py-5 sm:px-6 xl:grid-cols-[minmax(0,380px)_minmax(0,1fr)] lg:px-8">
+        <aside className="grid w-full min-w-0 max-w-full gap-4 self-start overflow-hidden">
+          <section className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-line bg-white p-5 shadow-soft">
             <SectionHeader icon={UploadCloud} title={text.uploadTitle} description={text.uploadHelp} />
             <div className="mt-5 grid gap-3">
               <button
                 type="button"
                 onClick={() => (files.length ? void runAnalysis() : fileInputRef.current?.click())}
                 disabled={isAnalyzing}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-teal px-4 font-semibold text-white shadow-table transition hover:bg-[#066865] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex min-h-12 w-full max-w-full items-center justify-center gap-2 whitespace-normal rounded-xl bg-teal px-4 text-center font-semibold leading-snug text-white shadow-table transition hover:bg-[#066865] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isAnalyzing ? <Loader2 className="h-5 w-5 animate-spin" /> : <UploadCloud className="h-5 w-5" />}
-                {files.length ? text.runSelected : text.uploadRun}
+                <span className="min-w-0 break-words">{files.length ? text.runSelected : text.uploadRun}</span>
               </button>
               <div className="flex items-center gap-3 text-xs font-semibold text-graphite/70">
                 <span className="h-px flex-1 bg-line" />
@@ -923,23 +923,23 @@ export function TenderLensApp() {
                 type="button"
                 onClick={runExampleAnalysis}
                 disabled={isAnalyzing}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-cobalt/30 bg-cobalt/5 px-4 text-center font-semibold leading-snug text-cobalt transition hover:bg-cobalt/10 disabled:opacity-60"
+                className="inline-flex min-h-12 w-full max-w-full items-center justify-center gap-2 whitespace-normal rounded-xl border border-cobalt/30 bg-cobalt/5 px-4 text-center font-semibold leading-snug text-cobalt transition hover:bg-cobalt/10 disabled:opacity-60"
               >
                 {isAnalyzing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Files className="h-5 w-5" />}
-                {text.runExample}
+                <span className="min-w-0 break-words">{text.runExample}</span>
               </button>
               <button
                 type="button"
                 onClick={() => setShowExamples(true)}
-                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-line bg-paper px-4 font-semibold text-ink transition hover:bg-white"
+                className="inline-flex min-h-11 w-full max-w-full items-center justify-center gap-2 whitespace-normal rounded-xl border border-line bg-paper px-4 text-center font-semibold leading-snug text-ink transition hover:bg-white"
               >
                 <Eye className="h-5 w-5 text-teal" />
-                {text.viewExample}
+                <span className="min-w-0 break-words">{text.viewExample}</span>
               </button>
             </div>
           </section>
 
-          <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
+          <section className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-line bg-white p-5 shadow-soft">
             <div className="flex items-start justify-between gap-3">
               <SectionHeader
                 icon={FileCheck2}
@@ -949,10 +949,10 @@ export function TenderLensApp() {
               <button
                 type="button"
                 onClick={() => addMoreInputRef.current?.click()}
-                className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl border border-line bg-paper px-3 text-sm font-semibold text-ink"
+                className="inline-flex min-h-10 shrink-0 items-center gap-2 whitespace-normal rounded-xl border border-line bg-paper px-3 text-center text-sm font-semibold leading-snug text-ink"
               >
                 <Plus className="h-4 w-4" />
-                {text.addMore}
+                <span className="min-w-0 break-words">{text.addMore}</span>
               </button>
             </div>
             <div className="mt-5 grid gap-2">

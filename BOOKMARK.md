@@ -34,6 +34,7 @@
   - Root cause found: demo fallback sorted uploaded filenames but compared against an unsorted expected list, so fallback did not trigger reliably.
   - Product fix: preloaded example analysis now uses verified local demo analysis directly instead of spending Gemini quota or depending on model availability.
   - UI fix: dashboard grid now uses a fixed 380px left rail with `minmax(0,1fr)` main content and hidden horizontal overflow.
+  - Follow-up UI fix from Playwright MCP snapshot: left rail cards/buttons now force `min-w-0`, `max-w-full`, and wrapping so long labels cannot widen the sidebar after preloaded files load.
   - Arabic fix: onboarding checks, example-file modal text, generated Tender Map/Briefing Deck/Questions labels, status labels, risk labels, and demo analysis are language-aware.
   - Local verification: `npm test` passed with 8 files / 21 tests; `npm run build` passed with `/`, `/how-to-use`, `/api/analyze`, `/api/chat`, and `/api/export`.
 
