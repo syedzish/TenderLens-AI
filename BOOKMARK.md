@@ -44,7 +44,7 @@
   - [x] Confirm Vercel fallback env var screenshot.
   - [x] Fix PPTX text overlap and score badge clipping.
   - [x] Generate and inspect a fresh PPTX.
-  - [ ] Run tests/build and push.
+  - [x] Run tests/build and push.
 
 ## Notes
 
@@ -130,6 +130,7 @@
     - rendered PPTX through installed PowerPoint to `.tmp/phase35-pptx-preview`
     - inspected Slide 1, Slide 4, and Slide 5 PNGs; no overlap and score displays correctly
     - secret scan found no API-key-like tokens outside ignored local folders
+    - pushed implementation commit `53c5fdc` to `origin/main`
 
 ## Verification Log
 
