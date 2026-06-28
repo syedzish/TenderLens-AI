@@ -72,4 +72,5 @@ Implement the approved repair plan for first-load empty workspace behavior, Gemi
   - `npm audit --json` reported 0 vulnerabilities
   - Playwright visual script passed and saved screenshots in `.tmp/screenshots`
   - repo secret scan found no API-key-like tokens outside ignored local folders
-- Remaining: commit, push to `origin/main`, verify Vercel deployment.
+- Pushed implementation commit `5ed8cf6` to `origin/main`.
+- Remaining: verify Vercel deployment.

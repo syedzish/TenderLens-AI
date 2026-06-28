@@ -29,7 +29,8 @@
   - [x] Add Start fresh and fix analyzed-file label overflow.
   - [x] Update How to Use example result preview and transparency copy.
   - [x] Verify tests, build, audit, and Playwright screenshots.
-  - [ ] Push to GitHub and verify Vercel.
+  - [x] Push to GitHub.
+  - [ ] Verify Vercel.
 
 ## Notes
 
@@ -72,6 +73,7 @@
     - `npm audit --json` reported 0 vulnerabilities
     - Playwright visual script passed and wrote screenshots under `.tmp/screenshots`
     - `rg` secret scan found no API-key-like tokens outside ignored local folders
+  - Pushed implementation commit `5ed8cf6` to `origin/main`.
 
 ## Verification Log
 
