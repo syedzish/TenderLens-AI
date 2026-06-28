@@ -4,7 +4,7 @@ import { createReportExport, type ExportFormat } from "@/lib/exporters";
 
 export const runtime = "nodejs";
 
-const FORMATS: ExportFormat[] = ["txt", "pdf", "docx"];
+const FORMATS: ExportFormat[] = ["txt", "pdf", "docx", "pptx"];
 
 function isExportFormat(value: unknown): value is ExportFormat {
   return typeof value === "string" && FORMATS.includes(value as ExportFormat);
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   }
 
   if (!isExportFormat(body.format)) {
-    return NextResponse.json({ error: "Choose PDF, DOCX, or TXT." }, { status: 400 });
+    return NextResponse.json({ error: "Choose PDF, DOCX, TXT, or PPTX." }, { status: 400 });
   }
 
   if (!body.result || typeof body.result !== "object") {

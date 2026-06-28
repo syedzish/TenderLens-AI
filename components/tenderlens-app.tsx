@@ -26,6 +26,7 @@ import {
   MessageCircle,
   Plus,
   Presentation,
+  RefreshCcw,
   SearchCheck,
   Send,
   ShieldCheck,
@@ -35,12 +36,12 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 
 import type { AppLanguage, ChatHistoryMessage } from "@/lib/chat";
 import type { ComplianceMatrixRow, ComplianceResult, ComplianceStatus, RiskLevel } from "@/lib/compliance";
 import { getDemoAnalysis, isDemoFileSet } from "@/lib/demo-analysis";
-import { buildBriefingDeck, buildClarificationQuestions, buildTenderMap } from "@/lib/derived-features";
+import { buildBriefingDeck, buildClarificationQuestions, buildTenderMap, type TenderMap } from "@/lib/derived-features";
 import {
   MAX_FILE_COUNT,
   MAX_FILE_SIZE_BYTES,
@@ -208,8 +209,31 @@ const labels = {
     slideCounterOne: "1 of 2",
     slideCounterTwo: "2 of 2",
     onboardingChecks: ["Extract requirements", "Match evidence", "Highlight risks"],
-    previewNotice:
-      "Preview mode: no files have been analyzed yet. Upload files or run the preloaded example to replace this with real results.",
+    previewNotice: "Start your analysis by uploading files or running the preloaded example.",
+    startTitle: "Start your analysis",
+    startBody:
+      "Upload tender files or run the preloaded example. TenderLens will then fill this workspace with a score, checklist, evidence, map, deck, and questions.",
+    emptyOverallTitle: "No analysis yet",
+    emptyOverallBody: "Your overall score and executive summary will appear here after TenderLens checks the files.",
+    emptyChecklistTitle: "No requirements checked yet",
+    emptyChecklistBody: "TenderLens will list each requirement, the matching evidence, and the risk level after analysis.",
+    emptyEvidenceTitle: "Evidence will appear after analysis",
+    emptyEvidenceBody: "Select a checklist row after analysis to see the exact supporting quote.",
+    emptyAttentionTitle: "No risks found yet",
+    emptyAttentionBody: "Risks and clarification points will appear here once the agent reviews the documents.",
+    emptyCheckedTitle: "Nothing checked yet",
+    emptyCheckedBody: "TenderLens will show the simple review steps it completed after analysis.",
+    emptyMapTitle: "Your document map will appear here",
+    emptyMapBody: "After analysis, this map will connect files, requirements, evidence, risks, and next actions.",
+    emptyDeckTitle: "Slides will appear after analysis",
+    emptyDeckBody: "TenderLens will build a short briefing deck from the same analysis without another AI call.",
+    emptyQuestionsTitle: "Questions will appear after analysis",
+    emptyQuestionsBody: "TenderLens will turn risks into simple questions you can ask the vendor or project owner.",
+    examplePreparedNote: "Preloaded files use a prepared sample result so you can test the interface without spending Gemini quota.",
+    sampleRun: "Prepared example",
+    startFresh: "Start fresh",
+    pptx: "PPTX",
+    svg: "SVG",
     verify: "AI-generated review. Verify before making procurement decisions.",
     uploadLimit: (count: number, size: string) => `Upload up to ${count} files. ${size} per file.`,
     resultTitleStrong: "Strong response with a few checks",
@@ -238,6 +262,7 @@ const labels = {
       action: "Actions",
     },
     evidencePath: "Evidence path",
+    mapOutcome: "Risks & actions",
     deckDesc: "A lightweight stakeholder briefing created from the analysis result.",
     questionsDesc: "Practical questions to send to the vendor or project owner before submission.",
     removeFile: "Remove file",
@@ -321,7 +346,31 @@ const labels = {
     slideCounterOne: "1 من 2",
     slideCounterTwo: "2 من 2",
     onboardingChecks: ["استخراج المتطلبات", "مطابقة الأدلة", "إبراز المخاطر"],
-    previewNotice: "وضع المعاينة: لم يتم تحليل ملفات بعد. ارفع ملفاتك أو حلل الملفات الجاهزة لاستبدال هذه النتائج بنتائج حقيقية.",
+    previewNotice: "ابدأ التحليل برفع الملفات أو تشغيل المثال الجاهز.",
+    startTitle: "ابدأ التحليل",
+    startBody:
+      "ارفع ملفات المناقصة أو شغل المثال الجاهز. سيملأ TenderLens هذه المساحة بالنتيجة والقائمة والأدلة والخريطة والعرض والأسئلة.",
+    emptyOverallTitle: "لا يوجد تحليل بعد",
+    emptyOverallBody: "ستظهر النتيجة العامة والملخص التنفيذي هنا بعد فحص الملفات.",
+    emptyChecklistTitle: "لم يتم فحص أي متطلبات بعد",
+    emptyChecklistBody: "سيعرض TenderLens كل متطلب والدليل المرتبط به ومستوى المخاطر بعد التحليل.",
+    emptyEvidenceTitle: "ستظهر الأدلة بعد التحليل",
+    emptyEvidenceBody: "اختر صفا من القائمة بعد التحليل لرؤية الاقتباس الداعم.",
+    emptyAttentionTitle: "لا توجد مخاطر بعد",
+    emptyAttentionBody: "ستظهر المخاطر ونقاط التوضيح هنا بعد مراجعة المستندات.",
+    emptyCheckedTitle: "لم يتم الفحص بعد",
+    emptyCheckedBody: "سيعرض TenderLens خطوات المراجعة البسيطة التي أنجزها بعد التحليل.",
+    emptyMapTitle: "ستظهر خريطة المستندات هنا",
+    emptyMapBody: "بعد التحليل، ستربط الخريطة الملفات والمتطلبات والأدلة والمخاطر والإجراءات التالية.",
+    emptyDeckTitle: "ستظهر الشرائح بعد التحليل",
+    emptyDeckBody: "سيبني TenderLens عرضا موجزا من نفس نتيجة التحليل بدون استدعاء إضافي للذكاء الاصطناعي.",
+    emptyQuestionsTitle: "ستظهر الأسئلة بعد التحليل",
+    emptyQuestionsBody: "سيحول TenderLens المخاطر إلى أسئلة بسيطة يمكن طرحها على المورد أو مالك المشروع.",
+    examplePreparedNote: "تستخدم الملفات الجاهزة نتيجة عينة معدة مسبقا حتى تجرب الواجهة بدون استهلاك حصة Gemini.",
+    sampleRun: "مثال معد مسبقا",
+    startFresh: "بدء جديد",
+    pptx: "PPTX",
+    svg: "SVG",
     verify: "مراجعة مولدة بالذكاء الاصطناعي. تحقق قبل اتخاذ قرارات الشراء.",
     uploadLimit: (count: number, size: string) => `يمكن رفع ${count} ملفات كحد أقصى. ${size} لكل ملف.`,
     resultTitleStrong: "عرض قوي مع بعض النقاط التي تحتاج مراجعة",
@@ -345,6 +394,7 @@ const labels = {
       action: "الإجراءات",
     },
     evidencePath: "مسار الأدلة",
+    mapOutcome: "المخاطر والإجراءات",
     deckDesc: "ملخص خفيف لأصحاب المصلحة يتم إنشاؤه من نتيجة التحليل.",
     questionsDesc: "أسئلة عملية لإرسالها إلى المورد أو مالك المشروع قبل التقديم.",
     removeFile: "إزالة الملف",
@@ -461,6 +511,134 @@ function SectionHeader({
   );
 }
 
+function EmptyPanel({
+  icon: Icon,
+  title,
+  body,
+  action,
+}: {
+  icon: typeof ClipboardCheck;
+  title: string;
+  body: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-dashed border-line bg-white/70 p-6 text-center">
+      <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-teal/10 text-teal">
+        <Icon className="h-6 w-6" />
+      </div>
+      <h3 className="mt-4 text-lg font-semibold text-ink">{title}</h3>
+      <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-graphite">{body}</p>
+      {action ? <div className="mt-5">{action}</div> : null}
+    </div>
+  );
+}
+
+function escapeSvg(input: string): string {
+  return input
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function wrapSvgText(input: string, maxChars = 24, maxLines = 3): string[] {
+  const words = input.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let line = "";
+
+  for (const word of words) {
+    const next = line ? `${line} ${word}` : word;
+    if (next.length > maxChars && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = next;
+    }
+
+    if (lines.length === maxLines) break;
+  }
+
+  if (line && lines.length < maxLines) lines.push(line);
+  if (lines.length === maxLines && words.join(" ").length > lines.join(" ").length) {
+    lines[maxLines - 1] = `${lines[maxLines - 1].replace(/\.*$/, "")}...`;
+  }
+
+  return lines.length ? lines : [input.slice(0, maxChars)];
+}
+
+function buildTenderMapSvg(
+  map: TenderMap,
+  title: string,
+  columnTitles: { file: string; requirement: string; evidence: string; outcome: string },
+): string {
+  const width = 1120;
+  const groups = {
+    file: map.nodes.filter((node) => node.kind === "file").slice(0, 4),
+    requirement: map.nodes.filter((node) => node.kind === "requirement").slice(0, 6),
+    evidence: map.nodes.filter((node) => node.kind === "evidence").slice(0, 6),
+    outcome: map.nodes.filter((node) => node.kind === "risk" || node.kind === "action").slice(0, 8),
+  };
+  const maxRows = Math.max(groups.file.length, groups.requirement.length, groups.evidence.length, groups.outcome.length, 3);
+  const height = 160 + maxRows * 118;
+  const columns = {
+    file: { x: 48, title: columnTitles.file },
+    requirement: { x: 310, title: columnTitles.requirement },
+    evidence: { x: 596, title: columnTitles.evidence },
+    outcome: { x: 850, title: columnTitles.outcome },
+  };
+  const positions = new Map<string, { x: number; y: number; w: number; h: number }>();
+
+  function color(node: TenderMap["nodes"][number]) {
+    if (node.kind === "file") return { fill: "#fffdf8", stroke: "#d7dfda", text: "#101214", pill: "#285ed8" };
+    if (node.kind === "requirement") return { fill: "#fff7e8", stroke: "#e8c98f", text: "#101214", pill: "#bd750f" };
+    if (node.kind === "evidence") return { fill: "#edf9f5", stroke: "#9ad7cc", text: "#101214", pill: "#087b78" };
+    if (node.risk === "High") return { fill: "#fff1ef", stroke: "#e9a7a0", text: "#101214", pill: "#b42318" };
+    if (node.risk === "Medium") return { fill: "#fff7e8", stroke: "#e8c98f", text: "#101214", pill: "#bd750f" };
+    return { fill: "#eef4ff", stroke: "#b6c8f3", text: "#101214", pill: "#285ed8" };
+  }
+
+  function renderNode(node: TenderMap["nodes"][number], x: number, y: number) {
+    const w = node.kind === "requirement" || node.kind === "evidence" ? 220 : 190;
+    const h = 72;
+    positions.set(node.id, { x, y, w, h });
+    const colors = color(node);
+    const lines = wrapSvgText(node.label, node.kind === "requirement" || node.kind === "evidence" ? 26 : 22, 3);
+    const textLines = lines
+      .map((line, index) => `<text x="${x + 16}" y="${y + 28 + index * 16}" font-size="13" font-family="Arial, sans-serif" fill="${colors.text}">${escapeSvg(line)}</text>`)
+      .join("");
+
+    return `<g><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="18" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="1.4"/><circle cx="${x + w - 22}" cy="${y + 20}" r="5" fill="${colors.pill}"/>${textLines}<title>${escapeSvg(node.label)}</title></g>`;
+  }
+
+  const nodes = [
+    ...groups.file.map((node, index) => renderNode(node, columns.file.x, 108 + index * 118)),
+    ...groups.requirement.map((node, index) => renderNode(node, columns.requirement.x, 108 + index * 118)),
+    ...groups.evidence.map((node, index) => renderNode(node, columns.evidence.x, 108 + index * 118)),
+    ...groups.outcome.map((node, index) => renderNode(node, columns.outcome.x, 108 + index * 118)),
+  ].join("");
+
+  const edges = map.edges
+    .map((edge) => {
+      const from = positions.get(edge.from);
+      const to = positions.get(edge.to);
+      if (!from || !to) return "";
+      const sx = from.x + from.w;
+      const sy = from.y + from.h / 2;
+      const tx = to.x;
+      const ty = to.y + to.h / 2;
+      const midX = sx + (tx - sx) / 2;
+      return `<path d="M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ty}, ${tx} ${ty}" fill="none" stroke="#7b8a8d" stroke-width="1.4" opacity="0.65" marker-end="url(#arrow)"/><text x="${midX - 28}" y="${(sy + ty) / 2 - 6}" font-size="10" font-family="Arial, sans-serif" fill="#526063">${escapeSvg(edge.label)}</text>`;
+    })
+    .join("");
+
+  const headings = Object.values(columns)
+    .map((column) => `<text x="${column.x}" y="82" font-size="12" font-weight="700" font-family="Arial, sans-serif" fill="#526063" letter-spacing="0">${escapeSvg(column.title)}</text>`)
+    .join("");
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeSvg(title)}" style="width:100%;height:auto;display:block"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#7b8a8d"/></marker></defs><rect width="${width}" height="${height}" rx="28" fill="#f5f1e8"/><rect x="24" y="24" width="${width - 48}" height="${height - 48}" rx="24" fill="#fffdf8" stroke="#d7dfda"/><text x="48" y="56" font-size="25" font-weight="700" font-family="Arial, sans-serif" fill="#101214">${escapeSvg(title)}</text>${headings}${edges}${nodes}</svg>`;
+}
+
 export function TenderLensApp() {
   const [language, setLanguage] = useState<AppLanguage>("en");
   const [files, setFiles] = useState<File[]>([]);
@@ -470,7 +648,7 @@ export function TenderLensApp() {
   const [activeRowIndex, setActiveRowIndex] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isChatting, setIsChatting] = useState(false);
-  const [isExporting, setIsExporting] = useState<null | "txt" | "pdf" | "docx">(null);
+  const [isExporting, setIsExporting] = useState<null | "txt" | "pdf" | "docx" | "pptx">(null);
   const [error, setError] = useState<string | null>(null);
   const [showExamples, setShowExamples] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
@@ -483,9 +661,9 @@ export function TenderLensApp() {
   const text = labels[language];
   const isRtl = language === "ar";
   const isExampleSelection = isDemoFileSet(files.map((file) => file.name));
-  const currentResult = hasAnalyzed && isExampleSelection ? getDemoAnalysis(language) : result ?? getDemoAnalysis(language);
+  const currentResult = hasAnalyzed ? (isExampleSelection ? getDemoAnalysis(language) : result) : null;
   const displayFileNames = files.map((file, index) => (isExampleSelection ? text.exampleFiles[index]?.label ?? file.name : file.name));
-  const activeRow = currentResult.matrix[Math.min(activeRowIndex, currentResult.matrix.length - 1)];
+  const activeRow = currentResult?.matrix[Math.min(activeRowIndex, currentResult.matrix.length - 1)] ?? null;
   const validation = useMemo(
     () =>
       validateUploadManifest(
@@ -498,13 +676,32 @@ export function TenderLensApp() {
     [files],
   );
   const tenderMap = useMemo(
-    () => buildTenderMap(currentResult, files.length ? displayFileNames : EXAMPLE_FILES.map((file, index) => text.exampleFiles[index]?.label ?? file.name), language),
+    () =>
+      currentResult
+        ? buildTenderMap(
+            currentResult,
+            files.length ? displayFileNames : EXAMPLE_FILES.map((file, index) => text.exampleFiles[index]?.label ?? file.name),
+            language,
+          )
+        : null,
     [currentResult, displayFileNames, files.length, language, text.exampleFiles],
   );
-  const briefingDeck = useMemo(() => buildBriefingDeck(currentResult, language), [currentResult, language]);
-  const clarificationQuestions = useMemo(() => buildClarificationQuestions(currentResult, language), [currentResult, language]);
-  const compliantCount = currentResult.matrix.filter((row) => row.status === "Compliant").length;
-  const riskCount = currentResult.matrix.filter((row) => row.risk !== "Low" || row.status !== "Compliant").length;
+  const tenderMapSvg = useMemo(
+    () =>
+      tenderMap
+        ? buildTenderMapSvg(tenderMap, text.mapSvgTitle, {
+            file: text.mapKinds.file,
+            requirement: text.mapKinds.requirement,
+            evidence: text.mapKinds.evidence,
+            outcome: text.mapOutcome,
+          })
+        : "",
+    [tenderMap, text.mapKinds.evidence, text.mapKinds.file, text.mapKinds.requirement, text.mapOutcome, text.mapSvgTitle],
+  );
+  const briefingDeck = useMemo(() => (currentResult ? buildBriefingDeck(currentResult, language) : []), [currentResult, language]);
+  const clarificationQuestions = useMemo(() => (currentResult ? buildClarificationQuestions(currentResult, language) : []), [currentResult, language]);
+  const compliantCount = currentResult?.matrix.filter((row) => row.status === "Compliant").length ?? 0;
+  const riskCount = currentResult?.matrix.filter((row) => row.risk !== "Low" || row.status !== "Compliant").length ?? 0;
   const visibleMessages: ChatHistoryMessage[] = chatMessages.length
     ? chatMessages
     : [{ role: "assistant", content: text.chatIntro }];
@@ -520,7 +717,31 @@ export function TenderLensApp() {
   function mergeFiles(nextFiles: File[]) {
     const merged = [...files, ...nextFiles].slice(0, MAX_FILE_COUNT);
     setFiles(merged);
+    setResult(null);
+    setHasAnalyzed(false);
+    setChatMessages([]);
+    setActiveRowIndex(0);
     setError(null);
+  }
+
+  function removeFile(fileToRemove: File) {
+    setFiles(files.filter((file) => file !== fileToRemove));
+    setResult(null);
+    setHasAnalyzed(false);
+    setChatMessages([]);
+    setActiveRowIndex(0);
+    setError(null);
+  }
+
+  function startFresh() {
+    setFiles([]);
+    setResult(null);
+    setHasAnalyzed(false);
+    setActiveTab("analysis");
+    setActiveRowIndex(0);
+    setError(null);
+    setChatInput("");
+    setChatMessages([]);
   }
 
   async function loadExampleFiles() {
@@ -539,6 +760,10 @@ export function TenderLensApp() {
 
   async function runAnalysis(inputFiles?: File[]) {
     const selected = inputFiles ?? files;
+    setResult(null);
+    setHasAnalyzed(false);
+    setChatMessages([]);
+    setActiveRowIndex(0);
     const manifest = validateUploadManifest(
       selected.map((file) => ({
         name: file.name,
@@ -602,7 +827,7 @@ export function TenderLensApp() {
 
   async function sendChatMessage(question?: string) {
     const message = (question ?? chatInput).trim();
-    if (!message || !hasAnalyzed) return;
+    if (!message || !currentResult) return;
 
     const nextMessages: ChatHistoryMessage[] = [...chatMessages, { role: "user", content: message }];
     setChatMessages(nextMessages);
@@ -634,8 +859,8 @@ export function TenderLensApp() {
     }
   }
 
-  async function downloadReport(format: "txt" | "pdf" | "docx") {
-    if (!hasAnalyzed) return;
+  async function downloadReport(format: "txt" | "pdf" | "docx" | "pptx") {
+    if (!currentResult) return;
     setIsExporting(format);
 
     try {
@@ -673,18 +898,8 @@ export function TenderLensApp() {
   }
 
   function downloadTenderMap() {
-    const rows = tenderMap.nodes
-      .slice(0, 16)
-      .map((node, index) => {
-        const x = 80 + (index % 4) * 220;
-        const y = 80 + Math.floor(index / 4) * 120;
-        return `<g><rect x="${x}" y="${y}" width="170" height="58" rx="14" fill="#ffffff" stroke="#d8e1e4"/><text x="${x + 14}" y="${y + 34}" font-size="12" fill="#101214">${node.label
-          .replace(/[<&>]/g, "")
-          .slice(0, 26)}</text></g>`;
-      })
-      .join("");
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560"><rect width="980" height="560" fill="#faf7ef"/><text x="48" y="42" font-size="24" font-family="Arial" fill="#101214">${text.mapSvgTitle}</text>${rows}</svg>`;
-    const blob = new Blob([svg], { type: "image/svg+xml" });
+    if (!tenderMapSvg) return;
+    const blob = new Blob([tenderMapSvg], { type: "image/svg+xml" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -847,6 +1062,9 @@ export function TenderLensApp() {
                 </div>
               ))}
             </div>
+            <div className="mt-4 rounded-xl border border-cobalt/20 bg-cobalt/5 p-3 text-sm font-semibold leading-6 text-cobalt">
+              {text.examplePreparedNote}
+            </div>
             <button type="button" onClick={runExampleAnalysis} className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-teal px-5 font-semibold text-white shadow-table">
               {isAnalyzing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
               {text.useExamples}
@@ -855,13 +1073,13 @@ export function TenderLensApp() {
         </div>
       ) : null}
 
-      <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-ink/95 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1560px] flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div className="flex items-center gap-3">
-            <Image src="/brand/tenderlens-logo.png" width={52} height={52} alt="" className="rounded-2xl shadow-table" />
+            <Image src="/brand/tenderlens-logo.png" width={52} height={52} alt="" className="rounded-2xl bg-white shadow-table" />
             <div>
-              <h1 className="text-2xl font-semibold leading-none text-ink">TenderLens AI</h1>
-              <p className="mt-1 text-sm text-graphite">{text.appSubtitle}</p>
+              <h1 className="text-2xl font-semibold leading-none text-white">TenderLens AI</h1>
+              <p className="mt-1 text-sm text-white/70">{text.appSubtitle}</p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -869,7 +1087,7 @@ export function TenderLensApp() {
               <BookOpen className="h-4 w-4 text-cobalt" />
               {text.howToUse}
             </Link>
-            <div className="inline-flex h-11 items-center rounded-xl border border-line bg-white p-1" aria-label={text.language}>
+            <div className="inline-flex h-11 items-center rounded-xl border border-white/15 bg-white p-1" aria-label={text.language}>
               {(["en", "ar"] as AppLanguage[]).map((item) => (
                 <button
                   key={item}
@@ -883,13 +1101,13 @@ export function TenderLensApp() {
                 </button>
               ))}
             </div>
-            <div className="flex h-11 overflow-hidden rounded-xl border border-line bg-white">
+            <div className="flex h-11 overflow-hidden rounded-xl border border-white/15 bg-white">
               {(["pdf", "docx", "txt"] as const).map((format) => (
                 <button
                   key={format}
                   type="button"
                   onClick={() => void downloadReport(format)}
-                  disabled={!hasAnalyzed || Boolean(isExporting)}
+                  disabled={!currentResult || Boolean(isExporting)}
                   className="inline-flex min-w-14 items-center justify-center gap-2 border-r border-line px-3 text-sm font-semibold text-ink last:border-r-0 hover:bg-mist disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isExporting === format ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowDownToLine className="h-4 w-4 text-teal" />}
@@ -941,48 +1159,62 @@ export function TenderLensApp() {
           </section>
 
           <section className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-line bg-white p-5 shadow-soft">
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-col gap-3">
               <SectionHeader
                 icon={FileCheck2}
                 title={text.analyzedFiles}
                 description={text.uploadLimit(MAX_FILE_COUNT, formatBytes(MAX_FILE_SIZE_BYTES))}
               />
-              <button
-                type="button"
-                onClick={() => addMoreInputRef.current?.click()}
-                className="inline-flex min-h-10 shrink-0 items-center gap-2 whitespace-normal rounded-xl border border-line bg-paper px-3 text-center text-sm font-semibold leading-snug text-ink"
-              >
-                <Plus className="h-4 w-4" />
-                <span className="min-w-0 break-words">{text.addMore}</span>
-              </button>
+              <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2">
+                {(files.length || hasAnalyzed) ? (
+                  <button
+                    type="button"
+                    onClick={startFresh}
+                    className="inline-flex min-h-10 min-w-0 items-center justify-center gap-2 whitespace-normal rounded-xl border border-line bg-white px-3 text-center text-sm font-semibold leading-snug text-graphite"
+                  >
+                    <RefreshCcw className="h-4 w-4 text-amber" />
+                    <span className="min-w-0 break-words">{text.startFresh}</span>
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => addMoreInputRef.current?.click()}
+                  className="inline-flex min-h-10 min-w-0 items-center justify-center gap-2 whitespace-normal rounded-xl border border-line bg-paper px-3 text-center text-sm font-semibold leading-snug text-ink"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="min-w-0 break-words">{text.addMore}</span>
+                </button>
+              </div>
             </div>
             <div className="mt-5 grid gap-2">
               {files.length ? (
                 files.map((file, index) => {
                   const Icon = fileIcon(file);
                   return (
-                    <div key={`${file.name}-${file.size}`} className="flex items-center gap-3 rounded-xl border border-line bg-paper p-3">
+                    <div key={`${file.name}-${file.size}`} className="grid min-w-0 gap-3 rounded-xl border border-line bg-paper p-3 sm:grid-cols-[auto_minmax(0,1fr)]">
                       <div className="grid h-11 w-11 place-items-center rounded-xl bg-white text-cobalt">
                         <Icon className="h-5 w-5" />
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate font-semibold text-ink">{displayFileNames[index]}</div>
-                        <div className="text-xs text-graphite">
-                          {formatBytes(file.size)} · {extensionLabel(file)}
+                      <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
+                        <div className="min-w-0">
+                          <div className="break-words font-semibold leading-5 text-ink">{displayFileNames[index]}</div>
+                          <div className="mt-1 text-xs text-graphite">
+                            {formatBytes(file.size)} · {extensionLabel(file)}
+                          </div>
                         </div>
+                        <span className="inline-flex w-fit shrink-0 items-center gap-1 rounded-full bg-teal/10 px-2.5 py-1 text-xs font-semibold text-teal">
+                          <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                          <span className="whitespace-normal">{hasAnalyzed ? text.analyzed : text.ready}</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeFile(file)}
+                          className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-graphite hover:bg-white"
+                          aria-label={text.removeFile}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
                       </div>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-teal/10 px-2.5 py-1 text-xs font-semibold text-teal">
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        {hasAnalyzed ? text.analyzed : text.ready}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setFiles(files.filter((item) => item !== file))}
-                        className="grid h-9 w-9 place-items-center rounded-full text-graphite hover:bg-white"
-                        aria-label={text.removeFile}
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
                     </div>
                   );
                 })
@@ -1005,38 +1237,101 @@ export function TenderLensApp() {
             </div>
           ) : null}
           {!hasAnalyzed ? (
-            <div className="rounded-2xl border border-cobalt/20 bg-cobalt/5 p-4 text-sm font-semibold leading-6 text-cobalt">
-              {text.previewNotice}
+            <div className="rounded-[28px] border border-ink/10 bg-ink p-6 text-white shadow-soft">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-semibold text-white/80">
+                <Sparkles className="h-4 w-4 text-amber" />
+                {text.previewNotice}
+              </div>
+              <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+                <div>
+                  <h2 className="text-3xl font-semibold leading-tight">{text.startTitle}</h2>
+                  <p className="mt-3 max-w-3xl text-base leading-7 text-white/72">{text.startBody}</p>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
+                  <button
+                    type="button"
+                    onClick={() => (files.length ? void runAnalysis() : fileInputRef.current?.click())}
+                    disabled={isAnalyzing}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-teal px-4 text-sm font-semibold text-white shadow-table disabled:opacity-60"
+                  >
+                    {isAnalyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
+                    {files.length ? text.runSelected : text.uploadRun}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={runExampleAnalysis}
+                    disabled={isAnalyzing}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-semibold text-white disabled:opacity-60"
+                  >
+                    <Files className="h-4 w-4" />
+                    {text.runExample}
+                  </button>
+                </div>
+              </div>
             </div>
           ) : null}
 
           <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
-            <div className="grid gap-5 xl:grid-cols-[1fr_360px] xl:items-center">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-teal/10 px-3 py-1 text-sm font-semibold text-teal">
-                  <Gauge className="h-4 w-4" />
-                  {text.overall}
-                </div>
-                <h2 className="mt-4 text-3xl font-semibold leading-tight text-ink">
-                  {currentResult.score >= 80 ? text.resultTitleStrong : text.resultTitleRisk}
-                </h2>
-                <p className="mt-3 max-w-3xl text-base leading-7 text-graphite">{currentResult.executiveBrief}</p>
-              </div>
-              <div className="flex items-center gap-5 rounded-2xl border border-line bg-paper p-4">
-                <ScoreRing score={currentResult.score} />
-                <div className="grid gap-3 text-sm">
-                  <div className="flex items-center gap-2 font-semibold text-teal">
-                    <CheckCircle2 className="h-4 w-4" />
-                    {text.compliantRows(compliantCount)}
+            {currentResult ? (
+              <div className="grid gap-5 xl:grid-cols-[1fr_360px] xl:items-center">
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-teal/10 px-3 py-1 text-sm font-semibold text-teal">
+                    <Gauge className="h-4 w-4" />
+                    {text.overall}
                   </div>
-                  <div className="flex items-center gap-2 font-semibold text-amber">
-                    <AlertTriangle className="h-4 w-4" />
-                    {text.riskRows(riskCount)}
+                  {isExampleSelection ? (
+                    <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-cobalt/10 px-3 py-1 text-xs font-semibold text-cobalt">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      {text.sampleRun}
+                    </div>
+                  ) : null}
+                  <h2 className="mt-4 text-3xl font-semibold leading-tight text-ink">
+                    {currentResult.score >= 80 ? text.resultTitleStrong : text.resultTitleRisk}
+                  </h2>
+                  <p className="mt-3 max-w-3xl text-base leading-7 text-graphite">{currentResult.executiveBrief}</p>
+                </div>
+                <div className="flex items-center gap-5 rounded-2xl border border-line bg-paper p-4">
+                  <ScoreRing score={currentResult.score} />
+                  <div className="grid gap-3 text-sm">
+                    <div className="flex items-center gap-2 font-semibold text-teal">
+                      <CheckCircle2 className="h-4 w-4" />
+                      {text.compliantRows(compliantCount)}
+                    </div>
+                    <div className="flex items-center gap-2 font-semibold text-amber">
+                      <AlertTriangle className="h-4 w-4" />
+                      {text.riskRows(riskCount)}
+                    </div>
+                    <p className="text-xs leading-5 text-graphite">{text.verify}</p>
                   </div>
-                  <p className="text-xs leading-5 text-graphite">{text.verify}</p>
                 </div>
               </div>
-            </div>
+            ) : (
+              <EmptyPanel
+                icon={Gauge}
+                title={text.emptyOverallTitle}
+                body={text.emptyOverallBody}
+                action={
+                  <div className="flex flex-col justify-center gap-2 sm:flex-row">
+                    <button
+                      type="button"
+                      onClick={() => (files.length ? void runAnalysis() : fileInputRef.current?.click())}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-teal px-4 text-sm font-semibold text-white"
+                    >
+                      <UploadCloud className="h-4 w-4" />
+                      {files.length ? text.runSelected : text.uploadRun}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={runExampleAnalysis}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-line bg-paper px-4 text-sm font-semibold text-ink"
+                    >
+                      <Files className="h-4 w-4 text-cobalt" />
+                      {text.runExample}
+                    </button>
+                  </div>
+                }
+              />
+            )}
           </section>
 
           <nav className="flex gap-2 overflow-x-auto rounded-2xl border border-line bg-white p-2 shadow-table" aria-label="TenderLens workspace tabs">
@@ -1058,7 +1353,7 @@ export function TenderLensApp() {
             })}
           </nav>
 
-          {activeTab === "analysis" ? (
+          {activeTab === "analysis" && currentResult ? (
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
               <section className="overflow-hidden rounded-2xl border border-line bg-white shadow-table">
                 <div className="border-b border-line bg-paper px-5 py-4">
@@ -1093,7 +1388,7 @@ export function TenderLensApp() {
                 <section className="rounded-2xl border border-line bg-white p-5 shadow-table">
                   <SectionHeader icon={FileText} title={text.evidence} description={text.evidenceDesc} />
                   <div className="mt-4 grid gap-3">
-                    {activeRow.citations.map((citation, index) => (
+                    {activeRow?.citations.map((citation, index) => (
                       <figure key={`${citation.file}-${index}`} className="rounded-xl border border-line bg-paper p-4">
                         <figcaption className="text-sm font-semibold text-ink">
                           {citation.file} {citation.page ? <span className="text-graphite">· {citation.page}</span> : null}
@@ -1132,10 +1427,41 @@ export function TenderLensApp() {
             </div>
           ) : null}
 
+          {activeTab === "analysis" && !currentResult ? (
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+              <section className="rounded-2xl border border-line bg-white p-5 shadow-table">
+                <SectionHeader icon={ClipboardCheck} title={text.checklist} description={text.checklistDesc} />
+                <div className="mt-5">
+                  <EmptyPanel icon={ClipboardCheck} title={text.emptyChecklistTitle} body={text.emptyChecklistBody} />
+                </div>
+              </section>
+              <aside className="grid gap-4 self-start">
+                <section className="rounded-2xl border border-line bg-white p-5 shadow-table">
+                  <SectionHeader icon={FileText} title={text.evidence} description={text.evidenceDesc} />
+                  <div className="mt-5">
+                    <EmptyPanel icon={FileText} title={text.emptyEvidenceTitle} body={text.emptyEvidenceBody} />
+                  </div>
+                </section>
+                <section className="rounded-2xl border border-line bg-white p-5 shadow-table">
+                  <SectionHeader icon={AlertTriangle} title={text.attention} description={text.attentionDesc} />
+                  <div className="mt-5">
+                    <EmptyPanel icon={AlertTriangle} title={text.emptyAttentionTitle} body={text.emptyAttentionBody} />
+                  </div>
+                </section>
+                <section className="rounded-2xl border border-line bg-white p-5 shadow-table">
+                  <SectionHeader icon={SearchCheck} title={text.checked} />
+                  <div className="mt-5">
+                    <EmptyPanel icon={SearchCheck} title={text.emptyCheckedTitle} body={text.emptyCheckedBody} />
+                  </div>
+                </section>
+              </aside>
+            </div>
+          ) : null}
+
           {activeTab === "ask" ? (
             <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
               <SectionHeader icon={MessageCircle} title={text.ask} description={text.askDesc} />
-              {!hasAnalyzed ? <div className="mt-4 rounded-xl border border-line bg-paper p-4 text-sm text-graphite">{text.noResult}</div> : null}
+              {!currentResult ? <div className="mt-4 rounded-xl border border-line bg-paper p-4 text-sm text-graphite">{text.noResult}</div> : null}
               <div className="mt-5 grid min-h-[460px] grid-rows-[1fr_auto] rounded-2xl border border-line bg-paper">
                 <div className="grid content-start gap-3 overflow-y-auto p-4">
                   {visibleMessages.map((message, index) => (
@@ -1163,7 +1489,7 @@ export function TenderLensApp() {
                         key={question}
                         type="button"
                         onClick={() => void sendChatMessage(question)}
-                        disabled={!hasAnalyzed || isChatting}
+                        disabled={!currentResult || isChatting}
                         className="rounded-full border border-line bg-white px-3 py-1.5 text-xs font-semibold text-graphite hover:border-cobalt hover:text-cobalt disabled:opacity-50"
                       >
                         {question}
@@ -1181,12 +1507,12 @@ export function TenderLensApp() {
                       value={chatInput}
                       onChange={(event) => setChatInput(event.target.value)}
                       placeholder={text.askPlaceholder}
-                      disabled={!hasAnalyzed || isChatting}
+                      disabled={!currentResult || isChatting}
                       className="min-h-12 flex-1 rounded-xl border border-line bg-white px-4 text-sm outline-none transition focus:border-teal focus:ring-4 focus:ring-teal/10 disabled:opacity-60"
                     />
                     <button
                       type="submit"
-                      disabled={!hasAnalyzed || !chatInput.trim() || isChatting}
+                      disabled={!currentResult || !chatInput.trim() || isChatting}
                       className="grid h-12 w-12 place-items-center rounded-xl bg-teal text-white shadow-table disabled:cursor-not-allowed disabled:opacity-50"
                       aria-label={text.sendMessage}
                     >
@@ -1202,41 +1528,40 @@ export function TenderLensApp() {
             <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <SectionHeader icon={GitBranch} title={text.map} description={text.mapDesc} />
-                <button type="button" onClick={downloadTenderMap} className="inline-flex h-11 items-center gap-2 rounded-xl border border-line bg-paper px-4 text-sm font-semibold text-ink">
+                <button
+                  type="button"
+                  onClick={downloadTenderMap}
+                  disabled={!tenderMapSvg}
+                  className="inline-flex h-11 items-center gap-2 rounded-xl border border-line bg-paper px-4 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-50"
+                >
                   <Download className="h-4 w-4 text-teal" />
-                  SVG
+                  {text.svg}
                 </button>
               </div>
-              <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_1fr_1fr]">
-                {(["file", "requirement", "risk", "action"] as const).map((kind) => (
-                  <div key={kind} className="rounded-2xl border border-line bg-paper p-4">
-                    <h3 className="font-semibold text-ink">{text.mapKinds[kind]}</h3>
-                    <div className="mt-3 grid gap-2">
-                      {tenderMap.nodes
-                        .filter((node) => node.kind === kind)
-                        .slice(0, 5)
-                        .map((node) => (
-                          <div key={node.id} className="rounded-xl bg-white p-3 text-sm text-graphite">
-                            {node.label}
-                          </div>
-                        ))}
+              {tenderMap && tenderMapSvg ? (
+                <>
+                  <div className="mt-6 overflow-x-auto rounded-[28px] border border-line bg-paper p-3 shadow-table">
+                    <div className="min-w-[920px]" dangerouslySetInnerHTML={{ __html: tenderMapSvg }} />
+                  </div>
+                  <div className="mt-4 rounded-2xl border border-line bg-ink p-5 text-white">
+                    <div className="flex items-center gap-2 text-sm font-semibold">
+                      <Layers3 className="h-4 w-4 text-amber" />
+                      {text.evidencePath}
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2 text-sm text-white/80">
+                      {tenderMap.edges.slice(0, 10).map((edge, index) => (
+                        <span key={`${edge.from}-${edge.to}-${index}`} className="rounded-full bg-white/10 px-3 py-1">
+                          {edge.label}
+                        </span>
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
-              <div className="mt-4 rounded-2xl border border-line bg-ink p-5 text-white">
-                <div className="flex items-center gap-2 text-sm font-semibold">
-                  <Layers3 className="h-4 w-4 text-amber" />
-                  {text.evidencePath}
+                </>
+              ) : (
+                <div className="mt-6">
+                  <EmptyPanel icon={GitBranch} title={text.emptyMapTitle} body={text.emptyMapBody} />
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2 text-sm text-white/80">
-                  {tenderMap.edges.slice(0, 10).map((edge, index) => (
-                    <span key={`${edge.from}-${edge.to}-${index}`} className="rounded-full bg-white/10 px-3 py-1">
-                      {edge.label}
-                    </span>
-                  ))}
-                </div>
-              </div>
+              )}
             </section>
           ) : null}
 
@@ -1244,49 +1569,70 @@ export function TenderLensApp() {
             <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <SectionHeader icon={Presentation} title={text.deck} description={text.deckDesc} />
-                <button type="button" onClick={() => void downloadReport("pdf")} className="inline-flex h-11 items-center gap-2 rounded-xl border border-line bg-paper px-4 text-sm font-semibold text-ink">
+                <button
+                  type="button"
+                  onClick={() => void downloadReport("pptx")}
+                  disabled={!currentResult || Boolean(isExporting)}
+                  className="inline-flex h-11 items-center gap-2 rounded-xl border border-line bg-paper px-4 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-50"
+                >
                   <Download className="h-4 w-4 text-teal" />
-                  PDF
+                  {isExporting === "pptx" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  {text.pptx}
                 </button>
               </div>
-              <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {briefingDeck.map((slide, index) => (
-                  <article key={slide.title} className="min-h-60 rounded-2xl border border-line bg-paper p-5">
-                    <div className="text-xs font-semibold uppercase text-teal">
-                      {index + 1} · {slide.eyebrow}
-                    </div>
-                    <h3 className="mt-4 text-xl font-semibold text-ink">{slide.title}</h3>
-                    <ul className="mt-4 grid gap-2 text-sm leading-6 text-graphite">
-                      {slide.bullets.slice(0, 4).map((bullet) => (
-                        <li key={bullet} className="rounded-xl bg-white p-3">
-                          {bullet}
-                        </li>
-                      ))}
-                    </ul>
-                  </article>
-                ))}
-              </div>
+              {briefingDeck.length ? (
+                <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {briefingDeck.map((slide, index) => (
+                    <article key={slide.title} className="min-h-60 rounded-[24px] border border-line bg-paper p-5 shadow-table">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="text-xs font-semibold uppercase text-teal">
+                          {index + 1} · {slide.eyebrow}
+                        </div>
+                        <Presentation className="h-4 w-4 text-cobalt" />
+                      </div>
+                      <h3 className="mt-4 text-xl font-semibold leading-snug text-ink">{slide.title}</h3>
+                      <ul className="mt-4 grid gap-2 text-sm leading-6 text-graphite">
+                        {slide.bullets.slice(0, 4).map((bullet) => (
+                          <li key={bullet} className="rounded-xl border border-line bg-white p-3">
+                            {bullet}
+                          </li>
+                        ))}
+                      </ul>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-6">
+                  <EmptyPanel icon={Presentation} title={text.emptyDeckTitle} body={text.emptyDeckBody} />
+                </div>
+              )}
             </section>
           ) : null}
 
           {activeTab === "questions" ? (
             <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
               <SectionHeader icon={CircleHelp} title={text.questions} description={text.questionsDesc} />
-              <div className="mt-6 grid gap-3">
-                {clarificationQuestions.map((item, index) => (
-                  <article key={`${item.question}-${index}`} className="rounded-2xl border border-line bg-paper p-4">
-                    <div className="flex items-start gap-3">
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-amber/15 text-sm font-semibold text-amber">
-                        {index + 1}
-                      </span>
-                      <div>
-                        <h3 className="font-semibold leading-6 text-ink">{item.question}</h3>
-                        <p className="mt-2 text-sm leading-6 text-graphite">{item.why}</p>
+              {clarificationQuestions.length ? (
+                <div className="mt-6 grid gap-3">
+                  {clarificationQuestions.map((item, index) => (
+                    <article key={`${item.question}-${index}`} className="rounded-2xl border border-line bg-paper p-4">
+                      <div className="flex items-start gap-3">
+                        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-amber/15 text-sm font-semibold text-amber">
+                          {index + 1}
+                        </span>
+                        <div>
+                          <h3 className="font-semibold leading-6 text-ink">{item.question}</h3>
+                          <p className="mt-2 text-sm leading-6 text-graphite">{item.why}</p>
+                        </div>
                       </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-6">
+                  <EmptyPanel icon={CircleHelp} title={text.emptyQuestionsTitle} body={text.emptyQuestionsBody} />
+                </div>
+              )}
             </section>
           ) : null}
         </section>

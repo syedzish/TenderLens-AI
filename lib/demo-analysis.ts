@@ -169,7 +169,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Partial",
       risk: "Medium",
       response: "العرض يوفر ضمان عطاء بنسبة 2%، لكن الصلاحية المذكورة 90 يوما فقط ما لم يتم تمديدها أثناء التوضيح.",
-      citations: [{ file: "مثال عرض المورد", quote: "Bid security: 2% of contract value, valid for 90 days from submission." }],
+      citations: [{ file: "مثال عرض المورد", quote: "ضمان العطاء يساوي 2% من قيمة العقد وصالح لمدة 90 يوما من تاريخ التقديم." }],
     },
     {
       requirement: "يجب أن تدعم البوابة والإشعارات وواجهة التفتيش اللغتين العربية والإنجليزية.",
@@ -177,7 +177,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Compliant",
       risk: "Low",
       response: "العرض يؤكد دعم العربية والإنجليزية في بوابة المشغل وإشعارات السكان وواجهة المفتش.",
-      citations: [{ file: "مثال عرض المورد", quote: "The operator portal and resident notifications are available in Arabic and English." }],
+      citations: [{ file: "مثال عرض المورد", quote: "بوابة المشغل وإشعارات السكان متاحة باللغتين العربية والإنجليزية." }],
     },
     {
       requirement: "يجب أن تحقق الخدمة المستضافة توافرا شهريا بنسبة 99.5% مع إشعار صيانة قبل 72 ساعة.",
@@ -185,7 +185,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Compliant",
       risk: "Low",
       response: "العرض والملحق يلتزمان بنسبة التوافر المطلوبة وإشعار الصيانة قبل 72 ساعة.",
-      citations: [{ file: "ملحق الامتثال الفني", quote: "Najm commits to 99.5% monthly uptime for the hosted production service." }],
+      citations: [{ file: "ملحق الامتثال الفني", quote: "تلتزم نجم بتوافر شهري بنسبة 99.5% للخدمة المستضافة في الإنتاج." }],
     },
     {
       requirement: "يجب تقديم شهادة ISO 27001 أو SOC 2 Type II أو تدقيق أمني مستقل مكافئ.",
@@ -193,7 +193,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Partial",
       risk: "Medium",
       response: "يوجد اختبار اختراق مستقل، لكن شهادة ISO 27001 لم تصدر بعد.",
-      citations: [{ file: "ملحق الامتثال الفني", quote: "ISO 27001 certification is scheduled for final audit in Q4 2026 and is not yet issued." }],
+      citations: [{ file: "ملحق الامتثال الفني", quote: "تمت جدولة تدقيق شهادة ISO 27001 النهائي في الربع الرابع من 2026 ولم تصدر الشهادة بعد." }],
     },
     {
       requirement: "يجب إكمال الإطلاق التشغيلي للمناطق الخمس قبل 30 سبتمبر 2026.",
@@ -201,7 +201,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Partial",
       risk: "High",
       response: "تاريخ الإطلاق المقترح هو 15 أكتوبر 2026، وهو بعد الموعد الإلزامي.",
-      citations: [{ file: "مثال عرض المورد", quote: "Go-live is planned for 15 October 2026 after staged district acceptance." }],
+      citations: [{ file: "مثال عرض المورد", quote: "تم التخطيط للإطلاق في 15 أكتوبر 2026 بعد قبول المناطق على مراحل." }],
     },
     {
       requirement: "يجب تخزين بيانات السكان وبيانات اللوحات داخل المملكة العربية السعودية.",
@@ -209,7 +209,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Compliant",
       risk: "Low",
       response: "البيانات التشغيلية والنسخ الاحتياطية ستبقى داخل المملكة.",
-      citations: [{ file: "ملحق الامتثال الفني", quote: "Backups will remain within the Kingdom of Saudi Arabia." }],
+      citations: [{ file: "ملحق الامتثال الفني", quote: "ستبقى النسخ الاحتياطية داخل المملكة العربية السعودية." }],
     },
     {
       requirement: "يجب الرد البشري على الحوادث الحرجة خلال 30 دقيقة وعلى التذاكر العادية خلال 4 ساعات عمل.",
@@ -217,7 +217,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Compliant",
       risk: "Low",
       response: "العرض والملحق يطابقان أهداف الاستجابة للحوادث الحرجة والتذاكر العادية.",
-      citations: [{ file: "ملحق الامتثال الفني", quote: "Critical production incidents receive a named support engineer within 30 minutes." }],
+      citations: [{ file: "ملحق الامتثال الفني", quote: "تحصل الحوادث الحرجة في الإنتاج على مهندس دعم محدد خلال 30 دقيقة." }],
     },
     {
       requirement: "يجب التكامل مع بوابة الدفع البلدية وتوفير واجهات REST APIs.",
@@ -225,7 +225,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Compliant",
       risk: "Low",
       response: "العرض يتضمن تكامل بوابة الدفع وواجهات REST APIs للإشغال والتصاريح والمخالفات والمدفوعات.",
-      citations: [{ file: "مثال عرض المورد", quote: "Najm exposes REST APIs for occupancy, permits, violation status, and payment events." }],
+      citations: [{ file: "مثال عرض المورد", quote: "توفر نجم واجهات REST API للإشغال والتصاريح وحالة المخالفات وأحداث الدفع." }],
     },
     {
       requirement: "يجب تدريب 50 موظفا بلديا على الأقل قبل الإطلاق.",
@@ -233,7 +233,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Partial",
       risk: "Medium",
       response: "العرض الأساسي يغطي 40 متدربا، ويمكن إضافة 10 متدربين عن بعد دون تكلفة ترخيص.",
-      citations: [{ file: "ملحق الامتثال الفني", quote: "Najm can add 10 additional trainees at no license cost if training is delivered remotely." }],
+      citations: [{ file: "ملحق الامتثال الفني", quote: "يمكن لنجم إضافة 10 متدربين إضافيين بدون تكلفة ترخيص إذا تم تقديم التدريب عن بعد." }],
     },
     {
       requirement: "يجب تقديم تقرير استدامة ربع سنوي.",
@@ -241,7 +241,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Compliant",
       risk: "Low",
       response: "الملحق يلتزم بتقرير ربع سنوي يغطي ملف طاقة الاستضافة ورحلات صيانة الأجهزة.",
-      citations: [{ file: "ملحق الامتثال الفني", quote: "Najm will submit a quarterly sustainability report covering cloud hosting region energy profile." }],
+      citations: [{ file: "ملحق الامتثال الفني", quote: "ستقدم نجم تقرير استدامة ربع سنوي يغطي ملف طاقة منطقة الاستضافة السحابية." }],
     },
   ],
   trace: ["تم التحقق من الملفات", "تم العثور على المتطلبات الإلزامية", "تمت مطابقة الأدلة", "تم ضبط مستوى المخاطر"],

@@ -10,10 +10,10 @@ const config: Config = {
     extend: {
       colors: {
         ink: "#101214",
-        graphite: "#2b3035",
-        mist: "#eef2f5",
-        paper: "#f8fafc",
-        line: "#dde4ea",
+        graphite: "#283038",
+        mist: "#e8eee9",
+        paper: "#f5f1e8",
+        line: "#d7dfda",
         teal: "#087b78",
         cobalt: "#285ed8",
         amber: "#bd750f",

@@ -20,11 +20,22 @@
   - [x] Add approved logo asset to `public/brand/tenderlens-logo.png`.
   - [x] Finish premium app UI, How to Use page, README cleanup, build fixes, and browser verification.
   - [x] Commit, push, and verify Vercel redeploy.
+- [x] Phase 3.3: Implement empty workspace, Gemini fallback, visual map/deck, and UI polish.
+  - [x] Update handoff plan files and current bookmark.
+  - [x] Remove initial demo-analysis rendering while keeping empty workspace sections visible.
+  - [x] Add friendly Gemini fallback/quota handling for the AI Studio project API key.
+  - [x] Render Tender Map on-page and export the same premium SVG.
+  - [x] Render Briefing Deck on-page and export PPTX.
+  - [x] Add Start fresh and fix analyzed-file label overflow.
+  - [x] Update How to Use example result preview and transparency copy.
+  - [x] Verify tests, build, audit, and Playwright screenshots.
+  - [ ] Push to GitHub and verify Vercel.
 
 ## Notes
 
 - Keep `confidential/`, `.env.local`, `.agents/`, `.tools/`, and build artifacts out of Git.
 - Use `GEMINI_MODEL=gemini-2.5-flash-lite`.
+- Optional model fallback variable for Vercel after this task: `GEMINI_FALLBACK_MODELS`.
 - Uploaded documents are transient and must not be persisted or logged.
 - Current gate: user approved UI/logo/onboarding assets; coding is allowed.
 - Current task: complete. Next task, if needed, is manual judging QA with the deployed URL and Gemini quota.
@@ -39,6 +50,28 @@
   - Follow-up Arabic fix from Playwright MCP snapshot: demo-file detection now recognizes browser display filenames with spaces, so switching to Arabic also swaps the executive brief/checklist text.
   - Follow-up Arabic polish: preloaded example file labels and Arabic citation labels now display Arabic names instead of English filenames.
   - Local verification: `npm test` passed with 8 files / 21 tests; `npm run build` passed with `/`, `/how-to-use`, `/api/analyze`, `/api/chat`, and `/api/export`.
+- Current execution task: implement user-approved Phase 3.3 plan.
+  - User clarified the key is an AI Studio project API key, not a per-model key.
+  - First-load workspace should remain visible but empty/instructional until analysis runs.
+  - Preloaded files should use the prepared local demo result and clearly say this saves API quota.
+  - Example analysis should move to How to Use, preferably as a screenshot-style preview/card.
+  - UI should be more premium, less white, responsive, and user-friendly.
+  - Handoff plan file: `docs/handoff/PHASE_3_3_EMPTY_WORKSPACE_AND_VISUAL_OUTPUTS.md`.
+  - Implementation completed locally:
+    - first-load workspace now shows empty instructional panels instead of demo analysis
+    - preloaded files use a clearly labeled prepared example result
+    - Gemini fallback model helper added for analyze/chat quota/transient/model errors
+    - Tender Map now renders as an on-page SVG graph and exports the same SVG
+    - Briefing Deck now renders on-page and exports PPTX
+    - Start fresh clears files/results/chat
+    - How to Use now includes an Example Analysis Result preview
+    - Arabic prepared demo citation text localized
+  - Local verification completed:
+    - `npm test` passed: 9 files / 26 tests
+    - `npm run build` passed
+    - `npm audit --json` reported 0 vulnerabilities
+    - Playwright visual script passed and wrote screenshots under `.tmp/screenshots`
+    - `rg` secret scan found no API-key-like tokens outside ignored local folders
 
 ## Verification Log
 

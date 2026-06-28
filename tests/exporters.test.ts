@@ -48,4 +48,17 @@ describe("report exporters", () => {
     expect(exported.contentType).toBe("text/plain; charset=utf-8");
     expect(new TextDecoder().decode(exported.body)).toContain("TenderLens AI Analysis Report");
   });
+
+  it("creates a PPTX briefing deck export", async () => {
+    const exported = await createReportExport({
+      format: "pptx",
+      result,
+      files: ["RFP.pdf"],
+      language: "en",
+    });
+
+    expect(exported.fileName).toMatch(/^tenderlens-briefing-deck-\d{4}-\d{2}-\d{2}\.pptx$/);
+    expect(exported.contentType).toBe("application/vnd.openxmlformats-officedocument.presentationml.presentation");
+    expect(exported.body.byteLength).toBeGreaterThan(1000);
+  });
 });

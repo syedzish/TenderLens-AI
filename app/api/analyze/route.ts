@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getDemoAnalysis, isDemoFileSet } from "@/lib/demo-analysis";
 import { analyzeDocuments } from "@/lib/gemini";
+import { friendlyGeminiError, GeminiFallbackError, getGeminiModelCandidates, runWithGeminiFallback } from "@/lib/gemini-fallback";
 import { checkCooldown, getClientKey } from "@/lib/rate-limit";
 import { validateUploadContent, validateUploadManifest } from "@/lib/security";
 
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
   }
 
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+  const modelCandidates = getGeminiModelCandidates(process.env.GEMINI_MODEL, process.env.GEMINI_FALLBACK_MODELS);
 
   if (!apiKey) {
     return NextResponse.json(
@@ -71,17 +72,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: contentValidation.errors.join(" ") }, { status: 400 });
     }
 
-    const result = await analyzeDocuments({
-      apiKey,
-      model,
-      files: preparedFiles,
-      language,
-    });
+    const analysis = await runWithGeminiFallback(modelCandidates, (model) =>
+      analyzeDocuments({
+        apiKey,
+        model,
+        files: preparedFiles,
+        language,
+      }),
+    );
 
     return NextResponse.json({
-      result,
+      result: analysis.value,
       meta: {
-        model,
+        model: analysis.model,
+        attemptedModels: analysis.attemptedModels,
+        fallbackUsed: analysis.fallbackUsed,
         files: manifest.files.map((file) => ({
           name: file.safeName,
           size: file.size,
@@ -97,7 +102,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         result: getDemoAnalysis(language),
         meta: {
-          model,
+          model: "verified-example-analysis",
           fallback: "verified-example-analysis",
           files: manifest.files.map((file) => ({
             name: file.safeName,
@@ -108,9 +113,25 @@ export async function POST(request: Request) {
       });
     }
 
+    if (error instanceof GeminiFallbackError) {
+      const friendly = friendlyGeminiError(error.kind, language);
+      return NextResponse.json(
+        {
+          error: friendly.message,
+          meta: {
+            attemptedModels: error.attempts.map((attempt) => attempt.model),
+          },
+        },
+        { status: friendly.status },
+      );
+    }
+
     return NextResponse.json(
       {
-        error: "TenderLens AI could not complete the analysis. Check the model key and try again.",
+        error:
+          language === "ar"
+            ? "لم يتمكن TenderLens AI من إكمال التحليل. يرجى المحاولة مرة أخرى."
+            : "TenderLens AI could not complete the analysis. Please try again.",
       },
       { status: 502 },
     );

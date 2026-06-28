@@ -1,10 +1,12 @@
 import {
+  AlertTriangle,
   ArrowLeft,
   BookOpen,
   CheckCircle2,
   Download,
   FileArchive,
   FileText,
+  Gauge,
   MessageCircle,
   Presentation,
   SearchCheck,
@@ -13,6 +15,10 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+
+import { getDemoAnalysis } from "@/lib/demo-analysis";
+
+const exampleAnalysis = getDemoAnalysis("en");
 
 const exampleFiles = [
   {
@@ -166,11 +172,69 @@ export default function HowToUsePage() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-7xl px-5 pb-10 lg:px-8">
+        <div className="rounded-[28px] border border-line bg-white p-6 shadow-soft">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-teal/10 px-3 py-1 text-sm font-semibold text-teal">
+                <Gauge className="h-4 w-4" />
+                Example Analysis Result
+              </div>
+              <h2 className="mt-4 text-3xl font-semibold leading-tight">What the output looks like after analysis</h2>
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-graphite">
+                This preview uses the public fictional example files. Real uploaded files generate their own Gemini analysis.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-line bg-paper p-4 text-center">
+              <div className="text-4xl font-semibold text-ink">{exampleAnalysis.score}</div>
+              <div className="text-xs font-semibold uppercase text-graphite">/100 score</div>
+            </div>
+          </div>
+          <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_360px]">
+            <div className="overflow-hidden rounded-2xl border border-line">
+              <div className="border-b border-line bg-paper px-4 py-3 font-semibold">Checklist preview</div>
+              <div className="divide-y divide-line">
+                {exampleAnalysis.matrix.slice(0, 4).map((row) => (
+                  <div key={row.requirement} className="grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1fr)_110px_90px]">
+                    <div>
+                      <div className="font-semibold leading-6">{row.requirement}</div>
+                      <div className="mt-1 text-sm text-graphite">{row.response}</div>
+                    </div>
+                    <span className="inline-flex h-fit w-fit items-center gap-1.5 rounded-lg border border-teal/20 bg-teal/10 px-2.5 py-1.5 text-xs font-semibold text-teal">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      {row.status}
+                    </span>
+                    <span className="inline-flex h-fit w-fit items-center gap-1.5 rounded-lg border border-amber/25 bg-amber/10 px-2.5 py-1.5 text-xs font-semibold text-amber">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      {row.risk}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <aside className="grid gap-4">
+              <div className="rounded-2xl border border-line bg-paper p-5">
+                <h3 className="font-semibold">Executive brief</h3>
+                <p className="mt-3 text-sm leading-6 text-graphite">{exampleAnalysis.executiveBrief}</p>
+              </div>
+              <div className="rounded-2xl border border-line bg-ink p-5 text-white">
+                <h3 className="font-semibold">What needs attention</h3>
+                <ul className="mt-3 grid gap-2 text-sm leading-6 text-white/75">
+                  {exampleAnalysis.risks.slice(0, 3).map((risk) => (
+                    <li key={risk}>- {risk}</li>
+                  ))}
+                </ul>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
       <section className="mx-auto grid max-w-7xl gap-5 px-5 pb-10 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
         <div className="rounded-2xl border border-line bg-white p-6 shadow-table">
           <h2 className="text-2xl font-semibold">Example files</h2>
           <p className="mt-2 text-sm leading-6 text-graphite">
-            These fictional files are public so judges can test TenderLens AI immediately.
+            These fictional files are public so judges can test TenderLens AI immediately. The in-app preloaded run uses a prepared sample result so you can test the interface without spending Gemini quota.
           </p>
           <div className="mt-5 grid gap-3">
             {exampleFiles.map((file) => (

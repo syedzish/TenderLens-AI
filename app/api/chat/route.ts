@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { normalizeChatPayload } from "@/lib/chat";
 import { chatWithDocuments } from "@/lib/gemini";
+import { friendlyGeminiError, GeminiFallbackError, getGeminiModelCandidates, runWithGeminiFallback } from "@/lib/gemini-fallback";
 import { checkCooldown, getClientKey } from "@/lib/rate-limit";
 import { validateUploadContent, validateUploadManifest } from "@/lib/security";
 
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
   }
 
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+  const modelCandidates = getGeminiModelCandidates(process.env.GEMINI_MODEL, process.env.GEMINI_FALLBACK_MODELS);
 
   if (!apiKey) {
     return NextResponse.json({ error: "Gemini API key is not configured for this environment." }, { status: 503 });
@@ -71,6 +72,8 @@ export async function POST(request: Request) {
   if (!normalized.ok || !normalized.value) {
     return NextResponse.json({ error: normalized.errors.join(" ") }, { status: 400 });
   }
+
+  const chatPayload = normalized.value;
 
   const manifest = validateUploadManifest(
     parsed.files.map((file) => ({
@@ -100,18 +103,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: contentValidation.errors.join(" ") }, { status: 400 });
     }
 
-    const answer = await chatWithDocuments({
-      apiKey,
-      model,
-      payload: normalized.value,
-      files: preparedFiles,
-    });
+    const chat = await runWithGeminiFallback(modelCandidates, (model) =>
+      chatWithDocuments({
+        apiKey,
+        model,
+        payload: chatPayload,
+        files: preparedFiles,
+      }),
+    );
 
     return NextResponse.json({
-      answer,
-      language: normalized.value.language,
+      answer: chat.value,
+      language: chatPayload.language,
       meta: {
-        model,
+        model: chat.model,
+        attemptedModels: chat.attemptedModels,
+        fallbackUsed: chat.fallbackUsed,
         files: manifest.files.map((file) => file.safeName),
       },
     });
@@ -119,9 +126,25 @@ export async function POST(request: Request) {
     const message = error instanceof Error ? error.message : "Unknown Gemini error";
     console.error("TenderLens chat failed:", message);
 
+    if (error instanceof GeminiFallbackError) {
+      const friendly = friendlyGeminiError(error.kind, chatPayload.language);
+      return NextResponse.json(
+        {
+          error: friendly.message,
+          meta: {
+            attemptedModels: error.attempts.map((attempt) => attempt.model),
+          },
+        },
+        { status: friendly.status },
+      );
+    }
+
     return NextResponse.json(
       {
-        error: "TenderLens AI could not answer that question. Try again with a shorter question.",
+        error:
+          chatPayload.language === "ar"
+            ? "لم يتمكن TenderLens AI من الإجابة عن هذا السؤال. حاول بسؤال أقصر."
+            : "TenderLens AI could not answer that question. Try again with a shorter question.",
       },
       { status: 502 },
     );

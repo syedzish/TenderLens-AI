@@ -2,6 +2,8 @@
 
 TenderLens AI is a Vercel-ready AI document assistant for tender and RFP review. Upload tender/proposal files, or use the public example files, and the Gemini-powered agent returns a scored compliance analysis with citations, risks, next actions, chat answers, a Tender Map, a Briefing Deck, and downloadable reports.
 
+Preloaded example files use a prepared sample result so judges can test the interface without spending Gemini quota. Uploaded files use the server-side Gemini workflow.
+
 ## Example Files
 
 Public fictional sample documents are included for judging:
@@ -32,8 +34,9 @@ The in-app **How to use** page also links to these files.
 4. Copy the key into local/Vercel environment variables only:
    - `GEMINI_API_KEY`
    - `GEMINI_MODEL=gemini-2.5-flash-lite`
+   - Optional: `GEMINI_FALLBACK_MODELS=gemini-2.5-flash-lite,gemini-3.1-flash-lite,gemini-3.5-flash,gemini-2.5-flash`
 
-The app uses the free Gemini Developer API flow and keeps the key server-side.
+The app uses the free Gemini Developer API flow with an AI Studio project API key and keeps the key server-side. If a model is quota-limited or temporarily unavailable, TenderLens tries configured fallback models before showing a friendly retry message.
 
 ## Vercel Deployment
 
@@ -41,6 +44,7 @@ Import this public GitHub repo into Vercel and set:
 
 - `GEMINI_API_KEY`
 - `GEMINI_MODEL=gemini-2.5-flash-lite`
+- Optional: `GEMINI_FALLBACK_MODELS`
 
 Every push to `main` redeploys the app.
 

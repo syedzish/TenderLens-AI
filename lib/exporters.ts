@@ -1,10 +1,12 @@
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import { jsPDF } from "jspdf";
+import pptxgen from "pptxgenjs";
 
 import type { AppLanguage } from "@/lib/chat";
 import type { ComplianceResult } from "@/lib/compliance";
+import { buildBriefingDeck } from "@/lib/derived-features";
 
-export type ExportFormat = "txt" | "pdf" | "docx";
+export type ExportFormat = "txt" | "pdf" | "docx" | "pptx";
 
 export type ReportExportInput = {
   format: ExportFormat;
@@ -142,6 +144,103 @@ async function createDocx(input: Omit<ReportExportInput, "format">): Promise<Uin
   return new Uint8Array(await Packer.toBuffer(document));
 }
 
+async function createPptx(input: Omit<ReportExportInput, "format">): Promise<Uint8Array> {
+  const isArabic = input.language === "ar";
+  const deck = buildBriefingDeck(input.result, input.language);
+  const pptx = new pptxgen();
+  pptx.layout = "LAYOUT_WIDE";
+  pptx.author = "TenderLens AI";
+  pptx.company = "TenderLens AI";
+  pptx.subject = "Tender compliance briefing deck";
+  pptx.title = "TenderLens AI Briefing Deck";
+  pptx.rtlMode = isArabic;
+  pptx.theme = {
+    headFontFace: "Aptos Display",
+    bodyFontFace: "Aptos",
+  };
+
+  deck.forEach((deckSlide, index) => {
+    const slide = pptx.addSlide();
+    slide.background = { color: "F5F1E8" };
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x: 0.35,
+      y: 0.3,
+      w: 12.65,
+      h: 6.9,
+      rectRadius: 0.16,
+      fill: { color: "FFFDF8" },
+      line: { color: "D7DFDA", width: 1 },
+    });
+    slide.addText("TenderLens AI", {
+      x: 0.75,
+      y: 0.58,
+      w: 2.2,
+      h: 0.28,
+      fontSize: 11,
+      bold: true,
+      color: "087B78",
+      align: isArabic ? "right" : "left",
+    });
+    slide.addText(`${index + 1} / ${deck.length}`, {
+      x: 11.1,
+      y: 0.58,
+      w: 1.2,
+      h: 0.28,
+      fontSize: 10,
+      bold: true,
+      color: "526063",
+      align: "right",
+    });
+    slide.addText(deckSlide.eyebrow, {
+      x: 0.75,
+      y: 1.1,
+      w: 3.1,
+      h: 0.32,
+      fontSize: 12,
+      bold: true,
+      color: "BD750F",
+      align: isArabic ? "right" : "left",
+      rtlMode: isArabic,
+    });
+    slide.addText(deckSlide.title, {
+      x: 0.75,
+      y: 1.5,
+      w: 11.7,
+      h: 0.85,
+      fontSize: 28,
+      bold: true,
+      color: "101214",
+      breakLine: false,
+      fit: "shrink",
+      align: isArabic ? "right" : "left",
+      rtlMode: isArabic,
+    });
+
+    deckSlide.bullets.slice(0, 5).forEach((bullet, bulletIndex) => {
+      slide.addText(`- ${bullet}`, {
+        x: 1,
+        y: 2.65 + bulletIndex * 0.72,
+        w: 11.2,
+        h: 0.52,
+        margin: 0.12,
+        fontSize: 14,
+        color: "283038",
+        fit: "shrink",
+        breakLine: false,
+        align: isArabic ? "right" : "left",
+        rtlMode: isArabic,
+        fill: { color: bulletIndex % 2 === 0 ? "EDF9F5" : "EEF4FF" },
+        line: { color: bulletIndex % 2 === 0 ? "9AD7CC" : "B6C8F3", transparency: 25 },
+      });
+    });
+  });
+
+  const output = await pptx.write({ outputType: "uint8array", compression: true });
+  if (output instanceof Uint8Array) return output;
+  if (output instanceof ArrayBuffer) return new Uint8Array(output);
+  return new TextEncoder().encode(String(output));
+}
+
 export async function createReportExport(input: ReportExportInput): Promise<ReportExport> {
   if (input.format === "txt") {
     return {
@@ -156,6 +255,14 @@ export async function createReportExport(input: ReportExportInput): Promise<Repo
       fileName: `${reportBaseName()}.pdf`,
       contentType: "application/pdf",
       body: await createPdf(input),
+    };
+  }
+
+  if (input.format === "pptx") {
+    return {
+      fileName: `tenderlens-briefing-deck-${todayStamp()}.pptx`,
+      contentType: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      body: await createPptx(input),
     };
   }
 
