@@ -8,11 +8,6 @@ confidential/
 .agents/
 .tools/
 .codex/
-antigravity_jobs
-
-# Pre-project research artifacts that are not part of the public app
-assets/research/
-docs/research/
 
 # Dependencies
 node_modules/
