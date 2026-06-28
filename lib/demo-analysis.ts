@@ -169,7 +169,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Partial",
       risk: "Medium",
       response: "العرض يوفر ضمان عطاء بنسبة 2%، لكن الصلاحية المذكورة 90 يوما فقط ما لم يتم تمديدها أثناء التوضيح.",
-      citations: [{ file: "najm-urban-mobility-proposal.docx", quote: "Bid security: 2% of contract value, valid for 90 days from submission." }],
+      citations: [{ file: "مثال عرض المورد", quote: "Bid security: 2% of contract value, valid for 90 days from submission." }],
     },
     {
       requirement: "يجب أن تدعم البوابة والإشعارات وواجهة التفتيش اللغتين العربية والإنجليزية.",
@@ -177,7 +177,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Compliant",
       risk: "Low",
       response: "العرض يؤكد دعم العربية والإنجليزية في بوابة المشغل وإشعارات السكان وواجهة المفتش.",
-      citations: [{ file: "najm-urban-mobility-proposal.docx", quote: "The operator portal and resident notifications are available in Arabic and English." }],
+      citations: [{ file: "مثال عرض المورد", quote: "The operator portal and resident notifications are available in Arabic and English." }],
     },
     {
       requirement: "يجب أن تحقق الخدمة المستضافة توافرا شهريا بنسبة 99.5% مع إشعار صيانة قبل 72 ساعة.",
@@ -185,7 +185,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Compliant",
       risk: "Low",
       response: "العرض والملحق يلتزمان بنسبة التوافر المطلوبة وإشعار الصيانة قبل 72 ساعة.",
-      citations: [{ file: "technical-compliance-addendum.pdf", quote: "Najm commits to 99.5% monthly uptime for the hosted production service." }],
+      citations: [{ file: "ملحق الامتثال الفني", quote: "Najm commits to 99.5% monthly uptime for the hosted production service." }],
     },
     {
       requirement: "يجب تقديم شهادة ISO 27001 أو SOC 2 Type II أو تدقيق أمني مستقل مكافئ.",
@@ -193,7 +193,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Partial",
       risk: "Medium",
       response: "يوجد اختبار اختراق مستقل، لكن شهادة ISO 27001 لم تصدر بعد.",
-      citations: [{ file: "technical-compliance-addendum.pdf", quote: "ISO 27001 certification is scheduled for final audit in Q4 2026 and is not yet issued." }],
+      citations: [{ file: "ملحق الامتثال الفني", quote: "ISO 27001 certification is scheduled for final audit in Q4 2026 and is not yet issued." }],
     },
     {
       requirement: "يجب إكمال الإطلاق التشغيلي للمناطق الخمس قبل 30 سبتمبر 2026.",
@@ -201,7 +201,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Partial",
       risk: "High",
       response: "تاريخ الإطلاق المقترح هو 15 أكتوبر 2026، وهو بعد الموعد الإلزامي.",
-      citations: [{ file: "najm-urban-mobility-proposal.docx", quote: "Go-live is planned for 15 October 2026 after staged district acceptance." }],
+      citations: [{ file: "مثال عرض المورد", quote: "Go-live is planned for 15 October 2026 after staged district acceptance." }],
     },
     {
       requirement: "يجب تخزين بيانات السكان وبيانات اللوحات داخل المملكة العربية السعودية.",
@@ -209,7 +209,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Compliant",
       risk: "Low",
       response: "البيانات التشغيلية والنسخ الاحتياطية ستبقى داخل المملكة.",
-      citations: [{ file: "technical-compliance-addendum.pdf", quote: "Backups will remain within the Kingdom of Saudi Arabia." }],
+      citations: [{ file: "ملحق الامتثال الفني", quote: "Backups will remain within the Kingdom of Saudi Arabia." }],
     },
     {
       requirement: "يجب الرد البشري على الحوادث الحرجة خلال 30 دقيقة وعلى التذاكر العادية خلال 4 ساعات عمل.",
@@ -217,7 +217,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Compliant",
       risk: "Low",
       response: "العرض والملحق يطابقان أهداف الاستجابة للحوادث الحرجة والتذاكر العادية.",
-      citations: [{ file: "technical-compliance-addendum.pdf", quote: "Critical production incidents receive a named support engineer within 30 minutes." }],
+      citations: [{ file: "ملحق الامتثال الفني", quote: "Critical production incidents receive a named support engineer within 30 minutes." }],
     },
     {
       requirement: "يجب التكامل مع بوابة الدفع البلدية وتوفير واجهات REST APIs.",
@@ -225,7 +225,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Compliant",
       risk: "Low",
       response: "العرض يتضمن تكامل بوابة الدفع وواجهات REST APIs للإشغال والتصاريح والمخالفات والمدفوعات.",
-      citations: [{ file: "najm-urban-mobility-proposal.docx", quote: "Najm exposes REST APIs for occupancy, permits, violation status, and payment events." }],
+      citations: [{ file: "مثال عرض المورد", quote: "Najm exposes REST APIs for occupancy, permits, violation status, and payment events." }],
     },
     {
       requirement: "يجب تدريب 50 موظفا بلديا على الأقل قبل الإطلاق.",
@@ -233,7 +233,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Partial",
       risk: "Medium",
       response: "العرض الأساسي يغطي 40 متدربا، ويمكن إضافة 10 متدربين عن بعد دون تكلفة ترخيص.",
-      citations: [{ file: "technical-compliance-addendum.pdf", quote: "Najm can add 10 additional trainees at no license cost if training is delivered remotely." }],
+      citations: [{ file: "ملحق الامتثال الفني", quote: "Najm can add 10 additional trainees at no license cost if training is delivered remotely." }],
     },
     {
       requirement: "يجب تقديم تقرير استدامة ربع سنوي.",
@@ -241,7 +241,7 @@ export const DEMO_ANALYSIS_AR: ComplianceResult = {
       status: "Compliant",
       risk: "Low",
       response: "الملحق يلتزم بتقرير ربع سنوي يغطي ملف طاقة الاستضافة ورحلات صيانة الأجهزة.",
-      citations: [{ file: "technical-compliance-addendum.pdf", quote: "Najm will submit a quarterly sustainability report covering cloud hosting region energy profile." }],
+      citations: [{ file: "ملحق الامتثال الفني", quote: "Najm will submit a quarterly sustainability report covering cloud hosting region energy profile." }],
     },
   ],
   trace: ["تم التحقق من الملفات", "تم العثور على المتطلبات الإلزامية", "تمت مطابقة الأدلة", "تم ضبط مستوى المخاطر"],

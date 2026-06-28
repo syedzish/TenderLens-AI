@@ -484,6 +484,7 @@ export function TenderLensApp() {
   const isRtl = language === "ar";
   const isExampleSelection = isDemoFileSet(files.map((file) => file.name));
   const currentResult = hasAnalyzed && isExampleSelection ? getDemoAnalysis(language) : result ?? getDemoAnalysis(language);
+  const displayFileNames = files.map((file, index) => (isExampleSelection ? text.exampleFiles[index]?.label ?? file.name : file.name));
   const activeRow = currentResult.matrix[Math.min(activeRowIndex, currentResult.matrix.length - 1)];
   const validation = useMemo(
     () =>
@@ -497,8 +498,8 @@ export function TenderLensApp() {
     [files],
   );
   const tenderMap = useMemo(
-    () => buildTenderMap(currentResult, files.length ? files.map((file) => file.name) : EXAMPLE_FILES.map((file) => file.name), language),
-    [currentResult, files, language],
+    () => buildTenderMap(currentResult, files.length ? displayFileNames : EXAMPLE_FILES.map((file, index) => text.exampleFiles[index]?.label ?? file.name), language),
+    [currentResult, displayFileNames, files.length, language, text.exampleFiles],
   );
   const briefingDeck = useMemo(() => buildBriefingDeck(currentResult, language), [currentResult, language]);
   const clarificationQuestions = useMemo(() => buildClarificationQuestions(currentResult, language), [currentResult, language]);
@@ -957,7 +958,7 @@ export function TenderLensApp() {
             </div>
             <div className="mt-5 grid gap-2">
               {files.length ? (
-                files.map((file) => {
+                files.map((file, index) => {
                   const Icon = fileIcon(file);
                   return (
                     <div key={`${file.name}-${file.size}`} className="flex items-center gap-3 rounded-xl border border-line bg-paper p-3">
@@ -965,7 +966,7 @@ export function TenderLensApp() {
                         <Icon className="h-5 w-5" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="truncate font-semibold text-ink">{file.name}</div>
+                        <div className="truncate font-semibold text-ink">{displayFileNames[index]}</div>
                         <div className="text-xs text-graphite">
                           {formatBytes(file.size)} · {extensionLabel(file)}
                         </div>
