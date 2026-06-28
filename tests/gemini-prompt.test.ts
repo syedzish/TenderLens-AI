@@ -66,4 +66,26 @@ describe("Gemini prompt hardening", () => {
     expect(prompt).toContain("If the answer is not supported by the evidence, say it was not found");
     expect(prompt).toContain("Do not infer missing facts");
   });
+
+  it("tells chat to follow the user's requested answer shape", () => {
+    const prompt = buildChatPrompt({
+      message: "summarize in 2 small points",
+      language: "en",
+      history: [],
+      analysis: {
+        score: 65,
+        executiveBrief: "Review result.",
+        matrix: [],
+        trace: [],
+        risks: [],
+        nextActions: [],
+      },
+    });
+
+    expect(prompt).toContain("Follow the user's requested format, count, length, and language");
+    expect(prompt).toContain("If the user asks for a specific number of points, return exactly that number");
+    expect(prompt).toContain("Do not dump the whole analysis when the user asks for a short answer");
+    expect(prompt).toContain("Use plain text that renders cleanly in a chat bubble");
+    expect(prompt).toContain("Do not use markdown bold markers");
+  });
 });
