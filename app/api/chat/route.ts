@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { normalizeChatPayload } from "@/lib/chat";
 import { chatWithDocuments } from "@/lib/gemini";
 import { checkCooldown, getClientKey } from "@/lib/rate-limit";
-import { validateUploadManifest } from "@/lib/security";
+import { validateUploadContent, validateUploadManifest } from "@/lib/security";
 
 export const runtime = "nodejs";
 export const maxDuration = 45;
@@ -94,6 +94,11 @@ export async function POST(request: Request) {
             })),
           )
         : [];
+    const contentValidation = validateUploadContent(preparedFiles);
+
+    if (!contentValidation.ok) {
+      return NextResponse.json({ error: contentValidation.errors.join(" ") }, { status: 400 });
+    }
 
     const answer = await chatWithDocuments({
       apiKey,

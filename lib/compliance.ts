@@ -135,6 +135,38 @@ function normalizeMatrix(value: unknown): ComplianceMatrixRow[] {
     .slice(0, 10);
 }
 
+function calibrateRisk(row: ComplianceMatrixRow): RiskLevel {
+  if (row.status === "Compliant") {
+    return row.risk;
+  }
+
+  const combined = `${row.requirement} ${row.category} ${row.response}`.toLowerCase();
+  const deadlineMiss =
+    /\b(go-live|deadline|no later than|completed by|delivery)\b/.test(combined) &&
+    /\b(after|later|late|delay|delayed|miss|missed|past)\b/.test(combined);
+
+  if (deadlineMiss) {
+    return "High";
+  }
+
+  if (row.status === "Gap") {
+    return row.risk === "Low" ? "High" : row.risk;
+  }
+
+  if (row.status === "Partial" && row.risk === "Low") {
+    return "Medium";
+  }
+
+  return row.risk;
+}
+
+function calibrateMatrix(matrix: ComplianceMatrixRow[]): ComplianceMatrixRow[] {
+  return matrix.map((row) => ({
+    ...row,
+    risk: calibrateRisk(row),
+  }));
+}
+
 export function normalizeComplianceResult(value: unknown): ComplianceResult {
   const object = toObject(value);
 
@@ -142,7 +174,7 @@ export function normalizeComplianceResult(value: unknown): ComplianceResult {
     return FALLBACK_COMPLIANCE_RESULT;
   }
 
-  const matrix = normalizeMatrix(object.matrix);
+  const matrix = calibrateMatrix(normalizeMatrix(object.matrix));
 
   if (matrix.length === 0) {
     return FALLBACK_COMPLIANCE_RESULT;

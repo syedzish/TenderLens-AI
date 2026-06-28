@@ -5,8 +5,19 @@ import {
   MAX_FILE_SIZE_BYTES,
   MAX_TOTAL_UPLOAD_BYTES,
   sanitizeFileName,
+  validateUploadContent,
   validateUploadManifest,
+  type ValidatedUploadFile,
 } from "../lib/security";
+
+function meta(name: string, extension: ValidatedUploadFile["extension"]): ValidatedUploadFile {
+  return {
+    name,
+    safeName: name,
+    extension,
+    size: 10,
+  };
+}
 
 describe("upload security guardrails", () => {
   it("sanitizes filenames without preserving path traversal", () => {
@@ -75,5 +86,23 @@ describe("upload security guardrails", () => {
     expect(empty.errors).toContain("blank.txt is empty.");
     expect(perFile.errors).toContain("big.pdf is larger than 4 MB.");
     expect(total.errors).toContain("Total upload size must stay under 12 MB.");
+  });
+
+  it("validates file signatures after upload bytes are read", () => {
+    const valid = validateUploadContent([
+      { meta: meta("rfp.pdf", ".pdf"), buffer: new TextEncoder().encode("%PDF-1.7").buffer },
+      { meta: meta("proposal.docx", ".docx"), buffer: new Uint8Array([0x50, 0x4b, 0x03, 0x04]).buffer },
+      { meta: meta("photo.png", ".png"), buffer: new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).buffer },
+      { meta: meta("notes.txt", ".txt"), buffer: new TextEncoder().encode("plain text").buffer },
+    ]);
+    const invalid = validateUploadContent([
+      { meta: meta("fake.pdf", ".pdf"), buffer: new TextEncoder().encode("not a pdf").buffer },
+      { meta: meta("binary.txt", ".txt"), buffer: new Uint8Array([0x61, 0x00, 0x62]).buffer },
+    ]);
+
+    expect(valid.ok).toBe(true);
+    expect(invalid.ok).toBe(false);
+    expect(invalid.errors).toContain("fake.pdf does not look like a valid PDF file.");
+    expect(invalid.errors).toContain("binary.txt does not look like a valid TXT file.");
   });
 });

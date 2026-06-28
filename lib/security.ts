@@ -30,6 +30,16 @@ export type UploadManifestResult = {
   errors: string[];
 };
 
+export type UploadContentFile = {
+  meta: ValidatedUploadFile;
+  buffer: ArrayBuffer;
+};
+
+export type UploadContentValidationResult = {
+  ok: boolean;
+  errors: string[];
+};
+
 export function sanitizeFileName(input: string): string {
   const trimmed = input.trim();
   const baseName = trimmed.split(/[\\/]/).filter(Boolean).pop() ?? "document";
@@ -130,6 +140,55 @@ export function validateUploadManifest(files: UploadManifestFile[]): UploadManif
   return {
     ok: errors.length === 0,
     files: errors.length === 0 ? validated : [],
+    errors,
+  };
+}
+
+function bytes(buffer: ArrayBuffer): Uint8Array {
+  return new Uint8Array(buffer);
+}
+
+function startsWith(actual: Uint8Array, expected: number[]): boolean {
+  return expected.every((value, index) => actual[index] === value);
+}
+
+function asciiAt(actual: Uint8Array, start: number, text: string): boolean {
+  return text.split("").every((char, index) => actual[start + index] === char.charCodeAt(0));
+}
+
+function looksLikeText(actual: Uint8Array): boolean {
+  return !actual.some((value) => value === 0);
+}
+
+function hasExpectedSignature(file: UploadContentFile): boolean {
+  const actual = bytes(file.buffer);
+
+  switch (file.meta.extension) {
+    case ".pdf":
+      return asciiAt(actual, 0, "%PDF-");
+    case ".docx":
+      return startsWith(actual, [0x50, 0x4b, 0x03, 0x04]) || startsWith(actual, [0x50, 0x4b, 0x05, 0x06]);
+    case ".jpg":
+    case ".jpeg":
+      return startsWith(actual, [0xff, 0xd8, 0xff]);
+    case ".png":
+      return startsWith(actual, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    case ".webp":
+      return asciiAt(actual, 0, "RIFF") && asciiAt(actual, 8, "WEBP");
+    case ".txt":
+      return looksLikeText(actual);
+    default:
+      return false;
+  }
+}
+
+export function validateUploadContent(files: UploadContentFile[]): UploadContentValidationResult {
+  const errors = files
+    .filter((file) => !hasExpectedSignature(file))
+    .map((file) => `${file.meta.safeName} does not look like a valid ${file.meta.extension.toUpperCase().slice(1)} file.`);
+
+  return {
+    ok: errors.length === 0,
     errors,
   };
 }

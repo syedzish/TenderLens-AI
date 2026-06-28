@@ -29,6 +29,7 @@
 - Current gate: user approved UI/logo/onboarding assets; coding is allowed.
 - Current task: complete. Next task, if needed, is manual judging QA with the deployed URL and Gemini quota.
 - Active implementation order: tests first, document intake, Gemini chat/export APIs, derived features, premium UI, verification.
+- Latest task: verified analysis accuracy and security hygiene; added risk calibration and server-side upload signature checks.
 
 ## Verification Log
 
@@ -69,3 +70,18 @@
   - Deployed URLs returned HTTP 200:
     - `https://tender-lens-ai-nine.vercel.app`
     - `https://tender-lens-ai-nine.vercel.app/how-to-use`
+- 2026-06-28 accuracy/security verification:
+  - Extracted bundled example DOCX text and verified expected truth set:
+    - bid security validity is partial
+    - bilingual support is compliant
+    - uptime/support/data residency/API/sustainability are compliant
+    - ISO certification/security evidence is partial
+    - go-live date is late and high risk
+    - training seats are partial unless remote extra seats are accepted
+  - Deployed `/api/analyze` returned HTTP 200 with a 10-row cited matrix using `gemini-2.5-flash-lite`.
+  - Found one accuracy issue: late go-live was returned as `Partial / Low`; added deterministic risk calibration so missed delivery deadlines become `High` and partial low-risk mandatory gaps become at least `Medium`.
+  - Added upload content signature validation for PDF, DOCX, TXT, JPG/JPEG, PNG, and WEBP before Gemini processing.
+  - Added npm `overrides` for patched `postcss@8.5.15`; `npm audit --json` reports 0 vulnerabilities.
+  - `npm test` passed: 7 files, 18 tests.
+  - `npm run build` passed.
+  - Production browser smoke passed on desktop and mobile after security changes.

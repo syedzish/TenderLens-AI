@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { analyzeDocuments } from "@/lib/gemini";
 import { checkCooldown, getClientKey } from "@/lib/rate-limit";
-import { validateUploadManifest } from "@/lib/security";
+import { validateUploadContent, validateUploadManifest } from "@/lib/security";
 
 export const runtime = "nodejs";
 export const maxDuration = 45;
@@ -64,6 +64,11 @@ export async function POST(request: Request) {
         buffer: await files[index].arrayBuffer(),
       })),
     );
+    const contentValidation = validateUploadContent(preparedFiles);
+
+    if (!contentValidation.ok) {
+      return NextResponse.json({ error: contentValidation.errors.join(" ") }, { status: 400 });
+    }
 
     const result = await analyzeDocuments({
       apiKey,
