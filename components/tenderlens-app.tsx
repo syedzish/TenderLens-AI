@@ -212,7 +212,7 @@ const labels = {
     previewNotice: "Start your analysis by uploading files or running the preloaded example.",
     startTitle: "Start your analysis",
     startBody:
-      "Upload tender files or run the preloaded example. TenderLens will then fill this workspace with a score, checklist, evidence, map, deck, and questions.",
+      "Upload tender files or run the preloaded example. TenderLens will then fill this workspace with a score, checklist, evidence, map, deck, and questions. Using the \"Run Analysis with preloaded files\" button (or uploading the exact example files) will generate pre-generated stored output. This is done to save Gemini API quota. You can use the App for live analysis by bringing your own files and uploading them.",
     emptyOverallTitle: "No analysis yet",
     emptyOverallBody: "Your overall score and executive summary will appear here after TenderLens checks the files.",
     emptyChecklistTitle: "No requirements checked yet",
@@ -349,7 +349,7 @@ const labels = {
     previewNotice: "ابدأ التحليل برفع الملفات أو تشغيل المثال الجاهز.",
     startTitle: "ابدأ التحليل",
     startBody:
-      "ارفع ملفات المناقصة أو شغل المثال الجاهز. سيملأ TenderLens هذه المساحة بالنتيجة والقائمة والأدلة والخريطة والعرض والأسئلة.",
+      "ارفع ملفات المناقصة أو شغل المثال الجاهز. سيملأ TenderLens هذه المساحة بالنتيجة والقائمة والأدلة والخريطة والعرض والأسئلة. سيؤدي استخدام زر \"حلل الملفات الجاهزة\" (أو رفع ملفات المثال المحددة) إلى إنتاج مخرجات مخزنة ومعدة مسبقًا. يتم ذلك لتوفير حصة Gemini API. يمكنك استخدام التطبيق لإجراء تحليل مباشر عن طريق جلب ملفاتك الخاصة ورفعها.",
     emptyOverallTitle: "لا يوجد تحليل بعد",
     emptyOverallBody: "ستظهر النتيجة العامة والملخص التنفيذي هنا بعد فحص الملفات.",
     emptyChecklistTitle: "لم يتم فحص أي متطلبات بعد",
@@ -493,14 +493,16 @@ function SectionHeader({
   icon: Icon,
   title,
   description,
+  colorClass = "bg-teal/10 text-teal",
 }: {
   icon: typeof ClipboardCheck;
   title: string;
   description?: string;
+  colorClass?: string;
 }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal/10 text-teal">
+      <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${colorClass}`}>
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
@@ -516,15 +518,17 @@ function EmptyPanel({
   title,
   body,
   action,
+  colorClass = "bg-teal/10 text-teal",
 }: {
   icon: typeof ClipboardCheck;
   title: string;
   body: string;
   action?: ReactNode;
+  colorClass?: string;
 }) {
   return (
     <div className="rounded-2xl border border-dashed border-line bg-white/70 p-6 text-center">
-      <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-teal/10 text-teal">
+      <div className={`mx-auto grid h-12 w-12 place-items-center rounded-2xl ${colorClass}`}>
         <Icon className="h-6 w-6" />
       </div>
       <h3 className="mt-4 text-lg font-semibold text-ink">{title}</h3>
@@ -1033,7 +1037,7 @@ export function TenderLensApp() {
         <div className="fixed inset-0 z-40 grid place-items-center bg-ink/45 p-4 backdrop-blur-sm">
           <div className="w-full max-w-3xl rounded-2xl border border-line bg-paper p-5 shadow-soft">
             <div className="flex items-start justify-between gap-4">
-              <SectionHeader icon={Files} title={text.exampleTitle} description={text.exampleDescription} />
+              <SectionHeader icon={Files} title={text.exampleTitle} description={text.exampleDescription} colorClass="bg-slate-500/10 text-slate-600" />
               <button
                 type="button"
                 onClick={() => setShowExamples(false)}
@@ -1122,7 +1126,7 @@ export function TenderLensApp() {
       <div className="mx-auto grid max-w-[1700px] items-start gap-5 px-4 py-5 sm:px-6 xl:grid-cols-[minmax(0,380px)_minmax(0,1fr)] lg:px-8">
         <aside className="grid w-full min-w-0 max-w-full gap-4 self-start overflow-hidden">
           <section className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-line bg-white p-5 shadow-soft">
-            <SectionHeader icon={UploadCloud} title={text.uploadTitle} description={text.uploadHelp} />
+            <SectionHeader icon={UploadCloud} title={text.uploadTitle} description={text.uploadHelp} colorClass="bg-teal/10 text-teal" />
             <div className="mt-5 grid gap-3">
               <button
                 type="button"
@@ -1164,6 +1168,7 @@ export function TenderLensApp() {
                 icon={FileCheck2}
                 title={text.analyzedFiles}
                 description={text.uploadLimit(MAX_FILE_COUNT, formatBytes(MAX_FILE_SIZE_BYTES))}
+                colorClass="bg-emerald-500/10 text-emerald-600"
               />
               <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2">
                 {(files.length || hasAnalyzed) ? (
@@ -1192,7 +1197,9 @@ export function TenderLensApp() {
                   const Icon = fileIcon(file);
                   return (
                     <div key={`${file.name}-${file.size}`} className="grid min-w-0 gap-3 rounded-xl border border-line bg-paper p-3 sm:grid-cols-[auto_minmax(0,1fr)]">
-                      <div className="grid h-11 w-11 place-items-center rounded-xl bg-white text-cobalt">
+                      <div className={`grid h-11 w-11 place-items-center rounded-xl bg-white ${
+                        Icon === FileImage ? "text-purple-600" : Icon === FileArchive ? "text-indigo-600" : "text-sky-600"
+                      }`}>
                         <Icon className="h-5 w-5" />
                       </div>
                       <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
@@ -1310,6 +1317,7 @@ export function TenderLensApp() {
                 icon={Gauge}
                 title={text.emptyOverallTitle}
                 body={text.emptyOverallBody}
+                colorClass="bg-indigo-500/10 text-indigo-600"
                 action={
                   <div className="flex flex-col justify-center gap-2 sm:flex-row">
                     <button
@@ -1337,6 +1345,13 @@ export function TenderLensApp() {
           <nav className="flex gap-2 overflow-x-auto rounded-2xl border border-line bg-white p-2 shadow-table" aria-label="TenderLens workspace tabs">
             {tabs.map((tab) => {
               const Icon = tab.icon;
+              const tabIconColors: Record<WorkspaceTab, string> = {
+                analysis: "text-cobalt",
+                ask: "text-fuchsia-600",
+                map: "text-amber",
+                deck: "text-rose-600",
+                questions: "text-cyan-600",
+              };
               return (
                 <button
                   key={tab.id}
@@ -1346,7 +1361,7 @@ export function TenderLensApp() {
                     activeTab === tab.id ? "bg-ink text-white" : "text-graphite hover:bg-paper hover:text-ink"
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className={`h-4 w-4 transition-colors ${activeTab === tab.id ? "text-white" : tabIconColors[tab.id]}`} />
                   {tab.label}
                 </button>
               );
@@ -1357,7 +1372,7 @@ export function TenderLensApp() {
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
               <section className="overflow-hidden rounded-2xl border border-line bg-white shadow-table">
                 <div className="border-b border-line bg-paper px-5 py-4">
-                  <SectionHeader icon={ClipboardCheck} title={text.checklist} description={text.checklistDesc} />
+                  <SectionHeader icon={ClipboardCheck} title={text.checklist} description={text.checklistDesc} colorClass="bg-cobalt/10 text-cobalt" />
                 </div>
                 <div className="divide-y divide-line">
                   {currentResult.matrix.map((row, index) => (
@@ -1386,7 +1401,7 @@ export function TenderLensApp() {
 
               <aside className="grid gap-4 self-start">
                 <section className="rounded-2xl border border-line bg-white p-5 shadow-table">
-                  <SectionHeader icon={FileText} title={text.evidence} description={text.evidenceDesc} />
+                  <SectionHeader icon={FileText} title={text.evidence} description={text.evidenceDesc} colorClass="bg-sky-500/10 text-sky-600" />
                   <div className="mt-4 grid gap-3">
                     {activeRow?.citations.map((citation, index) => (
                       <figure key={`${citation.file}-${index}`} className="rounded-xl border border-line bg-paper p-4">
@@ -1400,7 +1415,7 @@ export function TenderLensApp() {
                 </section>
 
                 <section className="rounded-2xl border border-line bg-white p-5 shadow-table">
-                  <SectionHeader icon={AlertTriangle} title={text.attention} description={text.attentionDesc} />
+                  <SectionHeader icon={AlertTriangle} title={text.attention} description={text.attentionDesc} colorClass="bg-danger/10 text-danger" />
                   <ul className="mt-4 grid gap-2 text-sm leading-6 text-graphite">
                     {(currentResult.risks.length ? currentResult.risks : [text.noMajorRisks]).map((risk) => (
                       <li key={risk} className="rounded-xl bg-amber/10 p-3 text-amber">
@@ -1411,7 +1426,7 @@ export function TenderLensApp() {
                 </section>
 
                 <section className="rounded-2xl border border-line bg-white p-5 shadow-table">
-                  <SectionHeader icon={SearchCheck} title={text.checked} />
+                  <SectionHeader icon={SearchCheck} title={text.checked} colorClass="bg-violet-500/10 text-violet-600" />
                   <ol className="mt-4 grid gap-2 text-sm leading-6 text-graphite">
                     {currentResult.trace.map((step, index) => (
                       <li key={`${step}-${index}`} className="flex gap-3">
@@ -1430,28 +1445,28 @@ export function TenderLensApp() {
           {activeTab === "analysis" && !currentResult ? (
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
               <section className="rounded-2xl border border-line bg-white p-5 shadow-table">
-                <SectionHeader icon={ClipboardCheck} title={text.checklist} description={text.checklistDesc} />
+                <SectionHeader icon={ClipboardCheck} title={text.checklist} description={text.checklistDesc} colorClass="bg-cobalt/10 text-cobalt" />
                 <div className="mt-5">
-                  <EmptyPanel icon={ClipboardCheck} title={text.emptyChecklistTitle} body={text.emptyChecklistBody} />
+                  <EmptyPanel icon={ClipboardCheck} title={text.emptyChecklistTitle} body={text.emptyChecklistBody} colorClass="bg-cobalt/10 text-cobalt" />
                 </div>
               </section>
               <aside className="grid gap-4 self-start">
                 <section className="rounded-2xl border border-line bg-white p-5 shadow-table">
-                  <SectionHeader icon={FileText} title={text.evidence} description={text.evidenceDesc} />
+                  <SectionHeader icon={FileText} title={text.evidence} description={text.evidenceDesc} colorClass="bg-sky-500/10 text-sky-600" />
                   <div className="mt-5">
-                    <EmptyPanel icon={FileText} title={text.emptyEvidenceTitle} body={text.emptyEvidenceBody} />
+                    <EmptyPanel icon={FileText} title={text.emptyEvidenceTitle} body={text.emptyEvidenceBody} colorClass="bg-sky-500/10 text-sky-600" />
                   </div>
                 </section>
                 <section className="rounded-2xl border border-line bg-white p-5 shadow-table">
-                  <SectionHeader icon={AlertTriangle} title={text.attention} description={text.attentionDesc} />
+                  <SectionHeader icon={AlertTriangle} title={text.attention} description={text.attentionDesc} colorClass="bg-danger/10 text-danger" />
                   <div className="mt-5">
-                    <EmptyPanel icon={AlertTriangle} title={text.emptyAttentionTitle} body={text.emptyAttentionBody} />
+                    <EmptyPanel icon={AlertTriangle} title={text.emptyAttentionTitle} body={text.emptyAttentionBody} colorClass="bg-danger/10 text-danger" />
                   </div>
                 </section>
                 <section className="rounded-2xl border border-line bg-white p-5 shadow-table">
-                  <SectionHeader icon={SearchCheck} title={text.checked} />
+                  <SectionHeader icon={SearchCheck} title={text.checked} colorClass="bg-violet-500/10 text-violet-600" />
                   <div className="mt-5">
-                    <EmptyPanel icon={SearchCheck} title={text.emptyCheckedTitle} body={text.emptyCheckedBody} />
+                    <EmptyPanel icon={SearchCheck} title={text.emptyCheckedTitle} body={text.emptyCheckedBody} colorClass="bg-violet-500/10 text-violet-600" />
                   </div>
                 </section>
               </aside>
@@ -1460,7 +1475,7 @@ export function TenderLensApp() {
 
           {activeTab === "ask" ? (
             <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
-              <SectionHeader icon={MessageCircle} title={text.ask} description={text.askDesc} />
+              <SectionHeader icon={MessageCircle} title={text.ask} description={text.askDesc} colorClass="bg-fuchsia-500/10 text-fuchsia-600" />
               {!currentResult ? <div className="mt-4 rounded-xl border border-line bg-paper p-4 text-sm text-graphite">{text.noResult}</div> : null}
               <div className="mt-5 grid min-h-[460px] grid-rows-[1fr_auto] rounded-2xl border border-line bg-paper">
                 <div className="grid content-start gap-3 overflow-y-auto p-4">
@@ -1527,7 +1542,7 @@ export function TenderLensApp() {
           {activeTab === "map" ? (
             <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <SectionHeader icon={GitBranch} title={text.map} description={text.mapDesc} />
+                <SectionHeader icon={GitBranch} title={text.map} description={text.mapDesc} colorClass="bg-amber/10 text-amber" />
                 <button
                   type="button"
                   onClick={downloadTenderMap}
@@ -1559,7 +1574,7 @@ export function TenderLensApp() {
                 </>
               ) : (
                 <div className="mt-6">
-                  <EmptyPanel icon={GitBranch} title={text.emptyMapTitle} body={text.emptyMapBody} />
+                  <EmptyPanel icon={GitBranch} title={text.emptyMapTitle} body={text.emptyMapBody} colorClass="bg-amber/10 text-amber" />
                 </div>
               )}
             </section>
@@ -1568,7 +1583,7 @@ export function TenderLensApp() {
           {activeTab === "deck" ? (
             <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <SectionHeader icon={Presentation} title={text.deck} description={text.deckDesc} />
+                <SectionHeader icon={Presentation} title={text.deck} description={text.deckDesc} colorClass="bg-rose-500/10 text-rose-600" />
                 <button
                   type="button"
                   onClick={() => void downloadReport("pptx")}
@@ -1603,7 +1618,7 @@ export function TenderLensApp() {
                 </div>
               ) : (
                 <div className="mt-6">
-                  <EmptyPanel icon={Presentation} title={text.emptyDeckTitle} body={text.emptyDeckBody} />
+                  <EmptyPanel icon={Presentation} title={text.emptyDeckTitle} body={text.emptyDeckBody} colorClass="bg-rose-500/10 text-rose-600" />
                 </div>
               )}
             </section>
@@ -1611,7 +1626,7 @@ export function TenderLensApp() {
 
           {activeTab === "questions" ? (
             <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
-              <SectionHeader icon={CircleHelp} title={text.questions} description={text.questionsDesc} />
+              <SectionHeader icon={CircleHelp} title={text.questions} description={text.questionsDesc} colorClass="bg-cyan-500/10 text-cyan-600" />
               {clarificationQuestions.length ? (
                 <div className="mt-6 grid gap-3">
                   {clarificationQuestions.map((item, index) => (
@@ -1630,7 +1645,7 @@ export function TenderLensApp() {
                 </div>
               ) : (
                 <div className="mt-6">
-                  <EmptyPanel icon={CircleHelp} title={text.emptyQuestionsTitle} body={text.emptyQuestionsBody} />
+                  <EmptyPanel icon={CircleHelp} title={text.emptyQuestionsTitle} body={text.emptyQuestionsBody} colorClass="bg-cyan-500/10 text-cyan-600" />
                 </div>
               )}
             </section>
