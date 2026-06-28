@@ -1,16 +1,16 @@
 # TenderLens AI
 
-TenderLens AI is a Vercel-ready compliance matrix agent for tender and RFP review. Upload up to three tender/proposal documents and the Gemini-powered agent returns a scored compliance matrix with citations, risks, next actions, and an executive brief.
+TenderLens AI is a Vercel-ready AI document assistant for tender and RFP review. Upload tender/proposal files, or use the public example files, and the Gemini-powered agent returns a scored compliance analysis with citations, risks, next actions, chat answers, a Tender Map, a Briefing Deck, and downloadable reports.
 
-## Demo Pack
+## Example Files
 
 Public fictional sample documents are included for judging:
 
-- [Riyadh Smart Parking RFP](public/demo-docs/riyadh-smart-parking-rfp.md)
-- [Najm Urban Mobility Proposal](public/demo-docs/najm-urban-mobility-proposal.md)
-- [Technical Compliance Addendum](public/demo-docs/technical-compliance-addendum.md)
+- [Riyadh Smart Parking RFP](public/demo-docs/riyadh-smart-parking-rfp.pdf)
+- [Najm Urban Mobility Proposal](public/demo-docs/najm-urban-mobility-proposal.docx)
+- [Technical Compliance Addendum](public/demo-docs/technical-compliance-addendum.pdf)
 
-PDF copies are also available in `public/demo-docs/`.
+The in-app **How to use** page also links to these files.
 
 ## Local Setup
 
@@ -46,10 +46,11 @@ Every push to `main` redeploys the app.
 
 ## Security Guardrails
 
-- Only `.pdf`, `.txt`, and `.md` files are accepted.
-- Max 3 files per analysis.
-- Max 1.5 MB per file.
-- Max 3 MB total upload payload.
+- Accepted files: `.pdf`, `.docx`, `.txt`, `.jpg`, `.jpeg`, `.png`, `.webp`.
+- Legacy `.doc` files are rejected with a friendly request to save as PDF or DOCX.
+- Max 5 files per analysis.
+- Max 4 MB per file.
+- Max 12 MB total upload payload.
 - Client and server validation both enforce limits.
 - Filenames are sanitized before use.
 - Empty, malformed, and unsupported files are rejected.
@@ -60,5 +61,5 @@ Every push to `main` redeploys the app.
 ## Scripts
 
 - `npm run dev` - local development server.
-- `npm test` - unit tests for guardrails and result normalization.
+- `npm test` - unit tests for guardrails, chat validation, exports, derived features, and result normalization.
 - `npm run build` - production build for Vercel.

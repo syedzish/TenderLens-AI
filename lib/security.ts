@@ -1,12 +1,16 @@
-export const MAX_FILE_COUNT = 3;
-export const MAX_FILE_SIZE_BYTES = 1.5 * 1024 * 1024;
-export const MAX_TOTAL_UPLOAD_BYTES = 3 * 1024 * 1024;
+export const MAX_FILE_COUNT = 5;
+export const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024;
+export const MAX_TOTAL_UPLOAD_BYTES = 12 * 1024 * 1024;
 
-const SUPPORTED_EXTENSIONS = new Set([".pdf", ".txt", ".md"]);
+const SUPPORTED_EXTENSIONS = new Set([".pdf", ".docx", ".txt", ".jpg", ".jpeg", ".png", ".webp"]);
 const SUPPORTED_MIME_TYPES = new Map<string, string[]>([
   [".pdf", ["application/pdf"]],
+  [".docx", ["application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/octet-stream"]],
   [".txt", ["text/plain"]],
-  [".md", ["text/markdown", "text/plain", "application/octet-stream"]],
+  [".jpg", ["image/jpeg"]],
+  [".jpeg", ["image/jpeg"]],
+  [".png", ["image/png"]],
+  [".webp", ["image/webp"]],
 ]);
 
 export type UploadManifestFile = {
@@ -17,7 +21,7 @@ export type UploadManifestFile = {
 
 export type ValidatedUploadFile = UploadManifestFile & {
   safeName: string;
-  extension: ".pdf" | ".txt" | ".md";
+  extension: SupportedExtension;
 };
 
 export type UploadManifestResult = {
@@ -40,7 +44,9 @@ export function sanitizeFileName(input: string): string {
   return collapsed || "document";
 }
 
-export function getFileExtension(fileName: string): ".pdf" | ".txt" | ".md" | null {
+export type SupportedExtension = ".pdf" | ".docx" | ".txt" | ".jpg" | ".jpeg" | ".png" | ".webp";
+
+export function getFileExtension(fileName: string): SupportedExtension | ".doc" | null {
   const safeName = sanitizeFileName(fileName).toLowerCase();
   const dotIndex = safeName.lastIndexOf(".");
 
@@ -49,13 +55,17 @@ export function getFileExtension(fileName: string): ".pdf" | ".txt" | ".md" | nu
   }
 
   const extension = safeName.slice(dotIndex);
-  return SUPPORTED_EXTENSIONS.has(extension) ? (extension as ".pdf" | ".txt" | ".md") : null;
+  if (extension === ".doc") {
+    return ".doc";
+  }
+
+  return SUPPORTED_EXTENSIONS.has(extension) ? (extension as SupportedExtension) : null;
 }
 
 export function isSupportedFile(file: UploadManifestFile): boolean {
   const extension = getFileExtension(file.name);
 
-  if (!extension) {
+  if (!extension || extension === ".doc") {
     return false;
   }
 
@@ -83,7 +93,7 @@ export function validateUploadManifest(files: UploadManifestFile[]): UploadManif
   const totalSize = files.reduce((sum, file) => sum + file.size, 0);
 
   if (totalSize > MAX_TOTAL_UPLOAD_BYTES) {
-    errors.push("Total upload size must stay under 3 MB.");
+    errors.push("Total upload size must stay under 12 MB.");
   }
 
   for (const file of files.slice(0, MAX_FILE_COUNT)) {
@@ -96,7 +106,12 @@ export function validateUploadManifest(files: UploadManifestFile[]): UploadManif
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      errors.push(`${safeName} is larger than 1.5 MB.`);
+      errors.push(`${safeName} is larger than 4 MB.`);
+      continue;
+    }
+
+    if (extension === ".doc") {
+      errors.push(`Please save ${safeName} as PDF or DOCX and upload again.`);
       continue;
     }
 

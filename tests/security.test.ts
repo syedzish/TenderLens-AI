@@ -14,32 +14,46 @@ describe("upload security guardrails", () => {
     expect(sanitizeFileName("  weird___name!!.md  ")).toBe("weird_name.md");
   });
 
-  it("accepts only pdf, txt, and markdown files within size limits", () => {
+  it("accepts common tender documents and images within size limits", () => {
     const result = validateUploadManifest([
       { name: "rfp.pdf", type: "application/pdf", size: 512_000 },
-      { name: "proposal.md", type: "text/markdown", size: 128_000 },
+      {
+        name: "proposal.docx",
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        size: 128_000,
+      },
       { name: "notes.txt", type: "text/plain", size: 64_000 },
+      { name: "site-photo.jpg", type: "image/jpeg", size: 250_000 },
+      { name: "diagram.webp", type: "image/webp", size: 220_000 },
     ]);
 
     expect(result.ok).toBe(true);
     expect(result.errors).toEqual([]);
     expect(result.files.map((file) => file.safeName)).toEqual([
       "rfp.pdf",
-      "proposal.md",
+      "proposal.docx",
       "notes.txt",
+      "site-photo.jpg",
+      "diagram.webp",
     ]);
   });
 
-  it("rejects unsupported, empty, oversized, and excessive uploads", () => {
+  it("rejects markdown, legacy doc, empty, oversized, and excessive uploads", () => {
     const tooMany = validateUploadManifest([
       { name: "a.pdf", type: "application/pdf", size: 12 },
       { name: "b.pdf", type: "application/pdf", size: 12 },
       { name: "c.pdf", type: "application/pdf", size: 12 },
       { name: "d.pdf", type: "application/pdf", size: 12 },
+      { name: "e.pdf", type: "application/pdf", size: 12 },
+      { name: "f.pdf", type: "application/pdf", size: 12 },
     ]);
 
-    const unsupported = validateUploadManifest([
-      { name: "sheet.xlsx", type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", size: 12 },
+    const markdown = validateUploadManifest([
+      { name: "notes.md", type: "text/markdown", size: 12 },
+    ]);
+
+    const legacyDoc = validateUploadManifest([
+      { name: "old-contract.doc", type: "application/msword", size: 12 },
     ]);
 
     const empty = validateUploadManifest([
@@ -56,9 +70,10 @@ describe("upload security guardrails", () => {
     ]);
 
     expect(tooMany.errors).toContain(`Upload up to ${MAX_FILE_COUNT} files.`);
-    expect(unsupported.errors).toContain("sheet.xlsx is not a supported file type.");
+    expect(markdown.errors).toContain("notes.md is not a supported file type.");
+    expect(legacyDoc.errors).toContain("Please save old-contract.doc as PDF or DOCX and upload again.");
     expect(empty.errors).toContain("blank.txt is empty.");
-    expect(perFile.errors).toContain("big.pdf is larger than 1.5 MB.");
-    expect(total.errors).toContain("Total upload size must stay under 3 MB.");
+    expect(perFile.errors).toContain("big.pdf is larger than 4 MB.");
+    expect(total.errors).toContain("Total upload size must stay under 12 MB.");
   });
 });

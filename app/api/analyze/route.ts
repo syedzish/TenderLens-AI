@@ -44,6 +44,7 @@ export async function POST(request: Request) {
   }
 
   const files = formData.getAll("files").filter(isFile);
+  const language = formData.get("language") === "ar" ? "ar" : "en";
   const manifest = validateUploadManifest(
     files.map((file) => ({
       name: file.name,
@@ -68,6 +69,7 @@ export async function POST(request: Request) {
       apiKey,
       model,
       files: preparedFiles,
+      language,
     });
 
     return NextResponse.json({
