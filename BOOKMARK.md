@@ -50,8 +50,8 @@
   - [x] Add deterministic document-role detection.
   - [x] Force RFP-only uploads to a no-response-evidence result.
   - [x] Treat malformed Gemini output as transient error instead of rendering fallback 0.
-  - [ ] Verify tests, build, security scan, push, and Vercel.
-- [ ] Phase 3.7: Stabilize repeated uploaded-file analysis and lock all run buttons while analyzing.
+  - [x] Verify tests, build, security scan, push, and Vercel.
+- [x] Phase 3.7: Stabilize repeated uploaded-file analysis and lock all run buttons while analyzing.
   - [x] User supplied the exact RFP/response files used for repeated testing:
     - `tenderlens-test-rfp-riyadh-digital-permits.pdf`
     - `tenderlens-test-bidder-response-atlas-systems.docx`
@@ -59,7 +59,7 @@
   - [x] Add document-role-aware result stabilization so the displayed score is derived from the final cited checklist, not the model's separate top-level score.
   - [x] Strengthen Gemini prompt/config for deterministic requirement ordering and document role separation.
   - [x] Fix empty-state run buttons to be fully disabled during analysis.
-  - [ ] Verify tests, build, security scan, GitHub cleanliness, push, and Vercel.
+  - [x] Verify tests, build, security scan, GitHub cleanliness, push, and Vercel.
 
 ## Notes
 
@@ -187,6 +187,11 @@
     - focused tests passed: `tests/compliance.test.ts`, `tests/ui-source.test.ts`
     - `npm test` passed: 13 files / 35 tests
     - `npm run build` passed
+    - secret scan found no API-key-like tokens outside ignored local folders
+    - `npm audit --json` reported 0 vulnerabilities
+    - committed implementation as `7eb8333` and pushed to `origin/main`
+    - GitHub/Vercel commit status reported success: "Deployment has completed"
+    - local Git working tree was clean after push
 
 ## Verification Log
 
