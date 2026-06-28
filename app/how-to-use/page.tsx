@@ -234,7 +234,7 @@ export default function HowToUsePage() {
         <div className="rounded-2xl border border-line bg-white p-6 shadow-table">
           <h2 className="text-2xl font-semibold">Example files</h2>
           <p className="mt-2 text-sm leading-6 text-graphite">
-            These fictional files are public so judges can test TenderLens AI immediately. The in-app preloaded run uses a prepared sample result so you can test the interface without spending Gemini quota.
+            These fictional files are public so you can test TenderLens AI immediately. The in-app preloaded run uses a prepared sample result so you can test the interface without spending Gemini quota.
           </p>
           <div className="mt-5 grid gap-3">
             {exampleFiles.map((file) => (
