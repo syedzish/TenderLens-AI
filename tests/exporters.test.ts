@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { ComplianceResult } from "../lib/compliance";
-import { buildPlainTextReport, createReportExport } from "../lib/exporters";
+import { buildPlainTextReport, createReportExport, formatPptxBullet } from "../lib/exporters";
 
 const result: ComplianceResult = {
   score: 82,
@@ -60,5 +60,16 @@ describe("report exporters", () => {
     expect(exported.fileName).toMatch(/^tenderlens-briefing-deck-\d{4}-\d{2}-\d{2}\.pptx$/);
     expect(exported.contentType).toBe("application/vnd.openxmlformats-officedocument.presentationml.presentation");
     expect(exported.body.byteLength).toBeGreaterThan(1000);
+  });
+
+  it("shortens long PPTX bullet text so slide cards do not overlap", () => {
+    const longBullet =
+      "Bid security must equal 2% of the contract value and remain valid for at least 120 days from submission. The operations portal, citizen notification templates, and field enforcement interface must support Arabic and English.";
+
+    const formatted = formatPptxBullet(longBullet);
+
+    expect(formatted.length).toBeLessThanOrEqual(118);
+    expect(formatted).toMatch(/\.\.\.$/);
+    expect(formatted).toContain("Bid security");
   });
 });

@@ -40,6 +40,11 @@
   - [x] Verify Antigravity job notes and clean up handoff location.
   - [x] Run tests, build, Playwright screenshots, and secret scan.
   - [ ] Commit and push updates.
+- [x] Phase 3.5: Fix downloaded PPTX layout.
+  - [x] Confirm Vercel fallback env var screenshot.
+  - [x] Fix PPTX text overlap and score badge clipping.
+  - [x] Generate and inspect a fresh PPTX.
+  - [ ] Run tests/build and push.
 
 ## Notes
 
@@ -103,6 +108,28 @@
     - Playwright visual script passed and wrote screenshots under `.tmp/screenshots/phase34`
     - secret scan found no API-key-like tokens outside ignored local folders
     - `npm audit --json` reported 0 vulnerabilities
+- Current execution task: implement Phase 3.5 PPTX export repair.
+  - User confirmed `GEMINI_FALLBACK_MODELS` in Vercel and reported downloaded PPTX formatting issue.
+  - Root cause from screenshot and exporter inspection:
+    - bullet cards are too short for multi-line evidence text
+    - exporter allows five long bullets on one slide
+    - score is split across cramped text boxes, causing clipping in PowerPoint
+  - Fix direction:
+    - cap slide bullets at four
+    - shorten bullet text for presentation canvas
+    - use taller bullet cards and a single safe score badge
+  - Implementation completed locally:
+    - added `formatPptxBullet` to shorten long slide bullets
+    - PPTX bullet cards are taller and limited to four items
+    - score badge is now one safe text box like `Score 75/100`
+    - added unit coverage for long PPTX bullet shortening
+  - Local verification completed:
+    - `npm test` passed: 9 files / 27 tests
+    - `npm run build` passed
+    - generated `.tmp/phase35-fixed-export.pptx` through `/api/export`
+    - rendered PPTX through installed PowerPoint to `.tmp/phase35-pptx-preview`
+    - inspected Slide 1, Slide 4, and Slide 5 PNGs; no overlap and score displays correctly
+    - secret scan found no API-key-like tokens outside ignored local folders
 
 ## Verification Log
 

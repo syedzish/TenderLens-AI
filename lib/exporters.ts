@@ -95,6 +95,14 @@ function textToUint8(text: string): Uint8Array {
   return new TextEncoder().encode(text);
 }
 
+export function formatPptxBullet(input: string, maxLength = 118): string {
+  const normalized = input.replace(/\s+/g, " ").trim();
+  if (normalized.length <= maxLength) return normalized;
+  const cutAt = normalized.lastIndexOf(" ", maxLength - 1);
+  const end = cutAt > maxLength * 0.65 ? cutAt : maxLength - 1;
+  return `${normalized.slice(0, end).replace(/[.,;:\s]+$/, "")}...`;
+}
+
 async function createPdf(input: Omit<ReportExportInput, "format">): Promise<Uint8Array> {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const lines = linesForReport(input);
@@ -183,15 +191,6 @@ async function createPptx(input: Omit<ReportExportInput, "format">): Promise<Uin
       fill: { color: accent },
       line: { color: accent, transparency: 100 },
     });
-    slide.addShape(pptx.ShapeType.roundRect, {
-      x: 0.72,
-      y: 5.55,
-      w: 2.35,
-      h: 0.88,
-      rectRadius: 0.12,
-      fill: { color: "101214" },
-      line: { color: "101214", transparency: 100 },
-    });
     slide.addText("TenderLens AI", {
       x: 0.75,
       y: 0.58,
@@ -212,36 +211,27 @@ async function createPptx(input: Omit<ReportExportInput, "format">): Promise<Uin
       color: "526063",
       align: "right",
     });
-    slide.addText(input.language === "ar" ? "النتيجة" : "Score", {
-      x: 0.95,
-      y: 5.76,
-      w: 0.9,
-      h: 0.2,
-      fontSize: 10,
-      bold: true,
-      color: "F5F1E8",
-      align: isArabic ? "right" : "left",
-      rtlMode: isArabic,
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x: 0.72,
+      y: 5.55,
+      w: 3.2,
+      h: 0.82,
+      rectRadius: 0.12,
+      fill: { color: "101214" },
+      line: { color: "101214", transparency: 100 },
     });
-    slide.addText(`${input.result.score}`, {
-      x: 1.9,
-      y: 5.62,
-      w: 0.9,
-      h: 0.42,
-      fontSize: 28,
+    slide.addText(`${input.language === "ar" ? "النتيجة" : "Score"} ${input.result.score}/100`, {
+      x: 1,
+      y: 5.78,
+      w: 2.64,
+      h: 0.24,
+      fontSize: 16,
       bold: true,
       color: "FFFFFF",
-      align: "right",
-    });
-    slide.addText("/100", {
-      x: 2.42,
-      y: 5.98,
-      w: 0.45,
-      h: 0.16,
-      fontSize: 8,
-      bold: true,
-      color: "F5F1E8",
-      align: "right",
+      breakLine: false,
+      fit: "shrink",
+      align: "center",
+      rtlMode: isArabic,
     });
     slide.addText(deckSlide.eyebrow, {
       x: 0.75,
@@ -288,20 +278,20 @@ async function createPptx(input: Omit<ReportExportInput, "format">): Promise<Uin
       rtlMode: isArabic,
     });
 
-    deckSlide.bullets.slice(0, 5).forEach((bullet, bulletIndex) => {
-      const y = 1.92 + bulletIndex * 0.84;
+    deckSlide.bullets.slice(0, 4).forEach((bullet, bulletIndex) => {
+      const y = 1.95 + bulletIndex * 1.04;
       slide.addShape(pptx.ShapeType.roundRect, {
         x: 6.7,
         y,
         w: 5.25,
-        h: 0.66,
+        h: 0.86,
         rectRadius: 0.08,
         fill: { color: bulletIndex % 2 === 0 ? softAccent : "FFFFFF" },
         line: { color: bulletIndex % 2 === 0 ? lineAccent : "D7DFDA", transparency: 15 },
       });
       slide.addShape(pptx.ShapeType.ellipse, {
         x: 6.9,
-        y: y + 0.17,
+        y: y + 0.22,
         w: 0.3,
         h: 0.3,
         fill: { color: accent },
@@ -309,7 +299,7 @@ async function createPptx(input: Omit<ReportExportInput, "format">): Promise<Uin
       });
       slide.addText(String(bulletIndex + 1), {
         x: 6.9,
-        y: y + 0.205,
+        y: y + 0.255,
         w: 0.3,
         h: 0.18,
         fontSize: 8,
@@ -317,13 +307,13 @@ async function createPptx(input: Omit<ReportExportInput, "format">): Promise<Uin
         color: "FFFFFF",
         align: "center",
       });
-      slide.addText(bullet, {
+      slide.addText(formatPptxBullet(bullet), {
         x: 7.35,
-        y: y + 0.1,
+        y: y + 0.16,
         w: 4.35,
-        h: 0.46,
+        h: 0.5,
         margin: 0.04,
-        fontSize: 16,
+        fontSize: 13,
         color: "283038",
         fit: "shrink",
         breakLine: false,
